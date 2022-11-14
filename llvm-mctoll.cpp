@@ -153,14 +153,27 @@ std::vector<GlobalData> GLOBAL_DATA;
 std::vector<GlobalData> DATA_SECTION;
 
 
+void DataSectionDump(){
+  
+  cout << "===================================================\n";  
+  for (auto i = DATA_SECTION.begin();i!=DATA_SECTION.end();i++){
+      cout << "\n\t Data Section: "<<(*i).name;
+      cout << "\n\t Addr = 0x" << std::hex << (*i).addr;
+      cout << "\n\t Size = " << std::dec <<(*i).size << endl;
+      cout << "\n";
+  }
+
+}
+
 
 void GlobalDataDump(){
-  
-  for (auto i = GLOBAL_DATA.begin();i!=GLOBAL_DATA.end();i++){
-      cout << setfill(' ') << setw(15)<< "\n\t Global Data: "<<(*i).name;
-      cout << setfill(' ') << setw(15)<< "\tAddr = 0x" << std::hex << (*i).addr;
-      cout << "\t\tSize = " << (*i).size << endl;
+  cout << "===================================================\n"; 
 
+  for (auto i = GLOBAL_DATA.begin();i!=GLOBAL_DATA.end();i++){
+      cout << "\n\t Global Data: "<<(*i).name;
+      cout << "\n\t Addr = 0x" << std::hex << (*i).addr;
+      cout << "\n\t Size = " << std::dec << (*i).size << endl;
+      cout << "\n";
   }
 
 }
@@ -1649,6 +1662,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
 
 
           GlobalDataDump();
+          DataSectionDump();
           ass_CFG->dump();
           allCFGs.push_back(ass_CFG);
       
@@ -2052,7 +2066,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
       printf("Global Data Dump:\n");
 
       GlobalDataDump();
-
+      DataSectionDump();
       ass_CFG->dump();
       allCFGs.push_back(ass_CFG);
     }
