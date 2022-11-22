@@ -85,6 +85,12 @@ public:
                         int RegID,
                         vector<set<int>>& visited);
 
+
+
+
+
+
+  int FindLoadStore();
 };
 
 #endif // LLVM_TOOLS_LLVM_MCTOLL_ASSEMBLYBASICBLOCK_H

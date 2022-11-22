@@ -86,7 +86,7 @@ AssemblyInstruction::AssemblyInstruction(const MCRegisterInfo &mri, MCInstPrinte
   this->Imm = -1;
   pair<const char *, uint64_t> mnemonicPair = IP.getMnemonic(MI);
   this->Mnemonic = string(mnemonicPair.first);
-
+  
 
   // Init the Reg Index
   // this->Rd = -1;
@@ -447,6 +447,10 @@ void AssemblyInstruction::dump() const {
   if(this->Epilogue) {
     printf("IsEpilogue\t");
   }
+  if(this->Load||this->Store){
+    printf("Data Root = %s\t", DataRoot);
+  }
+
   printf("Binary: ");
   const uint8_t *data = this->Bytes.data();
   int size = this->Bytes.size();
@@ -687,3 +691,26 @@ void AssemblyInstruction::setEpilogue(){ Epilogue = true; }
 
 
 string AssemblyInstruction::getMnemonic(){return this->Mnemonic;}
+
+
+
+// void AssemblyInstruction::addDataSource(AssemblyInstruction* inst){
+  
+//   DataSource.push_back(inst);
+
+// }
+
+// std::vector<AssemblyInstruction*>& AssemblyInstruction::getDataSource(){
+  
+//   return DataSource;
+// }
+
+
+void AssemblyInstruction::setDataRoot(string source){
+  DataRoot = source;
+}
+
+
+std::string AssemblyInstruction::getDataRoot(string source){
+  return DataRoot;
+}

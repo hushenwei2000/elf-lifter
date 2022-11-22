@@ -118,6 +118,21 @@ private:
   bool Epilogue = false;
 
 
+  // // The source is traversed all the way back to the address of source  
+  // // data and serves as metadata to help distinguish instructions
+  // // It only records LOAD or STORE instructions
+  // std::vector<AssemblyInstruction*> DataSource;
+
+
+  // Data source can only be one of the following 3
+  // Stack (SP)
+  // Heap: a0
+  // Returned pointer from a function can be hard to track the source,
+  // since the function can reside in lib, no dependency info is exposed
+  // to the BT interface. But we can bind such heap info with function calls
+  // -- linking load, store addresses with 
+  std::string DataRoot = "N/A";
+  
 
   AssemblyInstruction(const AssemblyInstruction&) = delete;
   
@@ -184,6 +199,13 @@ public:
 
   void printArrays();
   void printEdges();
+
+  void addDataSource(AssemblyInstruction* inst);
+  std::vector<AssemblyInstruction*>& getDataSource();
+  void setDataRoot(string source);
+  std::string getDataRoot(string source);
+
+ 
 
 };
 

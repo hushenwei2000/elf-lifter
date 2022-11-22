@@ -309,3 +309,77 @@ int AssemblyCFG::FindRet(){
   return 0;
 
 }
+
+
+
+void AssemblyCFG::TraverseLoadStore(){
+
+  AssemblyInstruction* inst;
+
+  for (vector<AssemblyBasicBlock*>::iterator it = this->BasicBlocks.begin();
+       it != this->BasicBlocks.end(); it++) {
+    vector<AssemblyInstruction*> instrs = *((*it)->getInstructions());
+
+    for (auto it = instrs.begin(); it != instrs.end(); it++) {
+        if((*it)->IsLoad() || (*it)->IsStore()){
+          if((*it)->getRs1() == 2)
+              (*it)->setDataRoot("RISCV_SP");
+              
+          // Need double check.....
+          // if((*it)->getRs1() == 10)
+          //     (*it)->setDataRoot("RISCV_HEAP");
+          else  
+            inst = FindDataSource(*it);
+        }
+
+    }
+    
+  }
+
+
+
+}
+
+
+
+
+
+AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
+
+
+  AssemblyInstruction*            ret     =     NULL;
+  int                             i       =     0;
+
+  // Check if the address points to stack SP
+  if(inst->getRd() == 2){
+    inst->setDataRoot("RISCV_SP");
+    return inst;
+  }
+  // Check if the address points to global data
+  else if(inst->getMnemonic() == "lui\t"){
+    inst->setDataRoot("RISCV_GLOBAL");
+    return inst;
+  }
+
+  for(i = RS1; i<=RS3; i++){
+    if(inst->HasLocalEdge(i)){
+      ret = FindDataSource(inst->getLocalEdge(i));
+      if(ret)
+        return ret;
+    }
+  }
+  
+  for(i = RS1; i<=RS3; i++){
+    if(inst->HasGlobalEdge(i)){
+      for(auto it = inst->getGlobalEdge(i).begin(); it != inst->getGlobalEdge(i).end();it++){    
+        ret = FindDataSource((*it));
+        if(ret)
+          return ret;
+      }
+    }
+  }
+  
+  return NULL;
+
+
+}
