@@ -96,6 +96,7 @@
 #include <sstream>
 #include <stdexcept>
 #include "MetaUtils.h"
+#include "ASMUtils.h"
 
 
 using namespace llvm;
@@ -135,13 +136,6 @@ int64_t BSS_SIZE;
 int64_t SBSS_SIZE;
 
 
-typedef struct GlobalData{
-
-  uint64_t addr;
-  int64_t  size;
-  string   name;
-
-}GlobalData;
 
 // <ADDR, SIZE>
 std::vector<GlobalData> GLOBAL_DATA;
@@ -151,6 +145,27 @@ std::vector<GlobalData> GLOBAL_DATA;
 
 // Data Section info 
 std::vector<GlobalData> DATA_SECTION;
+
+
+
+GlobalData* MatchGlobalData(uint64_t addr){
+  for(auto i = GLOBAL_DATA.begin(); i!=GLOBAL_DATA.end();i++){
+    if(i->addr == addr)
+      return &(*i);
+  }
+  return NULL;
+}
+
+
+
+GlobalData* MatchGlobalSection(uint64_t addr){
+  for(auto i = DATA_SECTION.begin(); i!=DATA_SECTION.end();i++){
+    if(addr >= i->addr && addr <= i->addr + i->size)
+      return &(*i);
+  }
+  return NULL;
+}
+
 
 
 void DataSectionDump(){
@@ -2062,7 +2077,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
 
       ass_CFG->FindPrologue();
       ass_CFG->FindRet();
-      ass_CFG->TraverseLoadStore();
+      //ass_CFG->TraverseLoadStore();
       //ass_CFG->FindEpilogue();
       printf("Global Data Dump:\n");
 

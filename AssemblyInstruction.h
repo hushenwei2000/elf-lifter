@@ -13,6 +13,7 @@
 #include "llvm/MC/MCInstPrinter.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "AssemblyFunction.h"
+#include "ASMUtils.h"
 /*
 #define GET_REGINFO_ENUM
 #include "build/lib/Target/RISCV/RISCVGenRegisterInfo.inc"
@@ -137,6 +138,9 @@ private:
   AssemblyInstruction(const AssemblyInstruction&) = delete;
   
 
+  GlobalData GlobalSymbol;
+
+
 protected:
   AssemblyInstruction();
 
@@ -203,9 +207,10 @@ public:
   void addDataSource(AssemblyInstruction* inst);
   std::vector<AssemblyInstruction*>& getDataSource();
   void setDataRoot(string source);
-  std::string getDataRoot(string source);
+  std::string getDataRoot();
 
- 
+  GlobalData getGlobalData();
+  void setGlobalData(GlobalData ptr);
 
 };
 

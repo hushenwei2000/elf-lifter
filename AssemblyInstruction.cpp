@@ -449,6 +449,12 @@ void AssemblyInstruction::dump() const {
   }
   if(this->Load||this->Store){
     printf("Data Root = %s\t", DataRoot);
+    if(DataRoot == "RISCV_GLOBAL"){
+      printf("Symbol Name = %s\t", GlobalSymbol.name);
+      if(GlobalSymbol.offset)
+        printf("Offset = %d\t", GlobalSymbol.offset);
+    }
+    
   }
 
   printf("Binary: ");
@@ -711,6 +717,14 @@ void AssemblyInstruction::setDataRoot(string source){
 }
 
 
-std::string AssemblyInstruction::getDataRoot(string source){
+std::string AssemblyInstruction::getDataRoot(){
   return DataRoot;
+}
+
+GlobalData AssemblyInstruction::getGlobalData(){
+  return GlobalSymbol;
+}
+
+void AssemblyInstruction::setGlobalData(GlobalData g){
+   GlobalSymbol = g;
 }

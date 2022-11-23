@@ -29,12 +29,16 @@ AssemblyBasicBlock::AssemblyBasicBlock(int id, uint64_t start_address,
 int AssemblyBasicBlock::addInstruction(AssemblyInstruction *ins) {
   ins->setBB(this->getId());
   this->Instructions.push_back(ins);
+  //cout << "Adding Instruction " << ins->getMnemonic() << ", Opcode :: " << ins->getOpcode() << endl;
+
   if(ins->getOpcode() == RVLOAD){
+    //cout<< "DEBUG::  Adding load instructions\n";
     ins->SetLoad();
     ins->SetOpAttr(RD, IsData);
     ins->SetOpAttr(RS1, IsAddr);
   }
   else if (ins->getOpcode() == RVSTORE){
+    //cout<< "DEBUG::  Adding store instructions\n";
     ins->SetStore();
     ins->SetOpAttr(RS1, IsAddr);
     ins->SetOpAttr(RS2, IsData);

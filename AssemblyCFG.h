@@ -44,8 +44,6 @@ private:
   // The stack excludes Prologue & Epilogue
   int stacksize;
 
-
-
   AssemblyCFG(const AssemblyCFG &) = delete;
 
 
@@ -81,7 +79,7 @@ public:
   void setRealStack(int size);
   int  getRealStack();
 
-
+  GlobalData* ComputeGlobalAddr(AssemblyInstruction* lui);
   
 };
 

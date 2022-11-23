@@ -10,6 +10,7 @@
 #include "AssemblyCFG.h"
 #include "PHI.h"
 #include "AssemblyFunction.h"
+#include "ASMUtils.h"
 
 
 using namespace llvm;
@@ -322,32 +323,51 @@ void AssemblyCFG::TraverseLoadStore(){
 
     for (auto it = instrs.begin(); it != instrs.end(); it++) {
         if((*it)->IsLoad() || (*it)->IsStore()){
+          //cout<< "DEBUG::  TraverseLoadStore() found load store instructions\n";
+
           if((*it)->getRs1() == 2)
               (*it)->setDataRoot("RISCV_SP");
               
           // Need double check.....
           // if((*it)->getRs1() == 10)
           //     (*it)->setDataRoot("RISCV_HEAP");
-          else  
+          else{  
             inst = FindDataSource(*it);
+            if(inst)
+              (*it)->setGlobalData(inst->getGlobalData());
+          }
+
+
+
         }
-
-    }
-    
+    } 
   }
-
-
-
 }
 
 
+GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* lui){
 
+    uint64_t addr = lui->getImm();
+    addr <<= 20;
+    addr += lui->getLocalEdge(RD)->getImm(); 
+    GlobalData* G = NULL;
+    G=MatchGlobalData(addr);
+    if(!G){
+      G=MatchGlobalSection(addr);
+      G->offset = addr - G->addr;
+    }
+
+
+    return G;
+
+}
 
 
 AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
 
 
   AssemblyInstruction*            ret     =     NULL;
+  GlobalData*                     G       =     NULL;
   int                             i       =     0;
 
   // Check if the address points to stack SP
@@ -358,6 +378,9 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
   // Check if the address points to global data
   else if(inst->getMnemonic() == "lui\t"){
     inst->setDataRoot("RISCV_GLOBAL");
+    G = ComputeGlobalAddr(inst);
+    if(G)
+      inst->setGlobalData(*G);
     return inst;
   }
 
