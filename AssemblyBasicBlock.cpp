@@ -329,8 +329,8 @@ int AssemblyBasicBlock::RecursiveTraverse(AssemblyBasicBlock* BB,
 
   
 
-  int                          ret        =   0;
-  set<AssemblyBasicBlock*>     myset      =   BB->getPredecessors();
+  int                          ret         =   0;
+  set<AssemblyBasicBlock*>     myset       =   BB->getPredecessors();
   vector<AssemblyInstruction*>* PreInstVec =   BB->getInstructions();
 
 
@@ -384,11 +384,11 @@ int AssemblyBasicBlock::BuildGlobalEdge(){
 
 
 
-  set<AssemblyBasicBlock*>     myset         = this->getPredecessors();
+  set<AssemblyBasicBlock*>      myset         = this->getPredecessors();
   vector<AssemblyInstruction*>* InstVec       = this->getInstructions();
   vector<AssemblyInstruction*>* PreInstVec    = NULL;
-  AssemblyInstruction*         Def           = NULL;
-  vector<set<int>>             visited(MAX_OPERAND);
+  AssemblyInstruction*          Def           = NULL;
+  vector<set<int>>              visited(MAX_OPERAND);
   // PHI                               phi           = PHI(this);
 
 
@@ -468,7 +468,7 @@ int AssemblyBasicBlock::BuildGlobalEdge(){
 
 void AssemblyBasicBlock::BuildPhiNodes(){
 
-    vector<AssemblyInstruction*>*      InstVec     = this->getInstructions();
+    vector<AssemblyInstruction*>*     InstVec     = this->getInstructions();
     vector<AssemblyInstruction*>*     EdgeVec     = NULL;
     PHI                               phi(this);
     set<AssemblyBasicBlock*>          myset       = this->getPredecessors();

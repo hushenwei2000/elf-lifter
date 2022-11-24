@@ -336,9 +336,6 @@ void AssemblyCFG::TraverseLoadStore(){
             if(inst)
               (*it)->setGlobalData(inst->getGlobalData());
           }
-
-
-
         }
     } 
   }
@@ -347,6 +344,7 @@ void AssemblyCFG::TraverseLoadStore(){
 
 GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* lui){
 
+    cout << "DEBUG:: Entering ComputeGlobalAddr()\n";
     uint64_t addr = lui->getImm();
     addr <<= 20;
     addr += lui->getLocalEdge(RD)->getImm(); 
@@ -357,6 +355,8 @@ GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* lui){
       G->offset = addr - G->addr;
     }
 
+    cout << "DEBUG:: Exiting ComputeGlobalAddr()\n";
+
 
     return G;
 
@@ -365,6 +365,7 @@ GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* lui){
 
 AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
 
+  cout << "DEBUG:: Entering FindDataSource()\n";
 
   AssemblyInstruction*            ret     =     NULL;
   GlobalData*                     G       =     NULL;
@@ -384,6 +385,7 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
     return inst;
   }
 
+
   for(i = RS1; i<=RS3; i++){
     if(inst->HasLocalEdge(i)){
       ret = FindDataSource(inst->getLocalEdge(i));
@@ -394,7 +396,10 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
   
   for(i = RS1; i<=RS3; i++){
     if(inst->HasGlobalEdge(i)){
-      for(auto it = inst->getGlobalEdge(i).begin(); it != inst->getGlobalEdge(i).end();it++){    
+      for(auto it = inst->getGlobalEdge(i).begin(); it != inst->getGlobalEdge(i).end();it++){
+        // skip the inst itself for loops to avoid infinite recursive calls
+        if(inst == *it) 
+          continue;   
         ret = FindDataSource((*it));
         if(ret)
           return ret;

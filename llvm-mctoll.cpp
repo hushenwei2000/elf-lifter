@@ -147,6 +147,14 @@ std::vector<GlobalData> GLOBAL_DATA;
 std::vector<GlobalData> DATA_SECTION;
 
 
+// Function Symbol info in ELF
+std::map<string, AssemblyFunction*> textSectionFunctions;
+
+
+
+std::vector<std::pair<string, uint64_t>> PLTFunctions;
+
+
 
 GlobalData* MatchGlobalData(uint64_t addr){
   for(auto i = GLOBAL_DATA.begin(); i!=GLOBAL_DATA.end();i++){
@@ -1144,11 +1152,22 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
   for (const SectionRef &Section : ToolSectionFilter(*Obj)) {
     Expected<section_iterator> SecOrErr = Section.getRelocatedSection();
     if (!SecOrErr) {
+      cout << "DEBUG::\t Section.getRelocatedSection() returns NULL\n";
       break;
     }
     section_iterator Sec2 = *SecOrErr;
-    if (Sec2 != Obj->section_end())
+    
+    if(auto errcheck = Sec2->getName()){
+      auto name = *errcheck;
+      cout << "DEBUG::\t Relocation Section Name = " << name.str() << endl;
+    }
+    cout << "DEBUG::\t Relocation Section Addr = " << Sec2->getAddress() << endl;
+
+
+    if (Sec2 != Obj->section_end()){
+      cout << "DEBUG::\t Push section iterator to SectionRelocMap\n";
       SectionRelocMap[*Sec2].push_back(Section);
+    }
   }
 
   // Create a mapping from virtual address to symbol name.  This is used to
@@ -1226,7 +1245,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
   }
 
   uint64_t pltStart, pltEnd;
-  std::map<string, AssemblyFunction*> textSectionFunctions;
+  // std::map<string, AssemblyFunction*> textSectionFunctions;
   // Sort all the symbols, this allows us to use a simple binary search to find
   // a symbol near an address.
   for (std::pair<const SectionRef, SectionSymbolsTy> &SecSyms : AllSymbols) {
@@ -1252,7 +1271,55 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
       pltStart = Section.getAddress();
       pltEnd = pltStart + Section.getSize();
       cout << "pltStart = " << pltStart << ", pltEnd = " << pltEnd << endl;
+
+      // for(auto iter : Section.relocations()){
+      //     cout<< "\t PLT Reloc Type = "  << iter.getType() << endl;
+      //     cout <<"\t PLT Symbol: " << ((iter).getSymbol())->getName()->str() << endl;;
+      // }
+      //cout << "\t PLT Reloc Section Name is " << Section.getRelocatedSection().get()->getName()->str() << endl;
     }
+
+    // Retrieve Function Symbols in PLT
+    StringRef RelaSymbolName;
+    uint64_t  RelaSymbolAddress;
+    uint64_t  RelaSymbolValue;
+
+    if(SectionName2.str() == ".rela.plt" || SectionName2.str() == "rel.plt") {
+
+        for(auto iter : Section.relocations()){
+          if (auto ErrCheck = ((iter).getSymbol())->getName())
+              RelaSymbolName = *ErrCheck;
+
+          if(auto ErrCheck = iter.getSymbol()->getAddress()){
+              RelaSymbolAddress = ErrCheck.get();
+          }
+
+          // if(auto ErrCheck = iter.getSymbol()->getValue()){
+          //     RelaSymbolValue = ErrCheck.get();
+          // }
+          
+          // cout<< "\t PLT Reloc Type = "  << iter.getType() << endl;
+          // cout <<"\t PLT Symbol:         \t" << RelaSymbolName.str() << endl;
+          // cout <<"\t PLT Symbol Addr:    \t" << RelaSymbolAddress << endl;
+          // cout <<"\t PLT Symbol Offset:  \t" << std::hex << iter.getOffset() << endl;
+
+            
+
+          // If ISA = RV32 or RV64
+          // if(ISA_type == 3 || ISA_type == 4)
+          //   RelaSymbolAddress += pltStart + 32 + counter*8;
+
+          PLTFunctions.push_back(make_pair(RelaSymbolName.str(),RelaSymbolAddress));
+          
+        }
+        // cout  << "\t Dumping PLT Functions < Symbol Name,  Address >";
+        // for(auto it:PLTFunctions)
+        //   cout<< "\t PLT Symbol: < " << it.first    << ",  "<< it.second << " >" << endl;
+    }
+
+
+  
+   
 
     SectionSymbolsTy Symbols = SecSyms.second;
     for (int i = 0; i < Symbols.size(); i++){
@@ -1287,6 +1354,16 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
     }
   }
   
+
+
+  std::cout << "\n\n\t Dumping PLT Functions < Symbol Name,  Address >\n";
+  for(int i = 0; i<PLTFunctions.size();i++){
+    // If ISA = RV32 or RV64
+    if(ISA_type == 3 || ISA_type == 4)
+      PLTFunctions[i].second = pltStart + 32 + i*16;
+    cout<< "\t PLT Symbol: < " << PLTFunctions[i].first    << ",  0x"<< std::hex <<PLTFunctions[i].second << " >" << endl;
+  }
+  std::cout << "\n\n";
 
   //LLVM_DEBUG(dbgs() << "DEBUG:: Last ToolSectionFilter  \n");
   //for (const SectionRef &Section : ToolSectionFilter(*Obj));
@@ -1357,6 +1434,14 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
     if (InlineRelocs) {
       for (const SectionRef &RelocSec : SectionRelocMap[Section]) {
         for (const RelocationRef &Reloc : RelocSec.relocations()) {
+          if(auto errcheck = Reloc.getSymbol()->getName()){
+              StringRef name = *errcheck;
+              cout << "DEBUG::\t Relocation Symbol Name =    " << name.str() << endl;
+          }
+          if(auto errcheck = Reloc.getSymbol()->getAddress()){
+              uint64_t addr = *errcheck;
+              cout << "DEBUG::\t Relocation Symbol Address = " << addr << endl;
+          }
           Rels.push_back(Reloc);
         }
       }
