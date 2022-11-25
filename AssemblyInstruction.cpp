@@ -85,8 +85,12 @@ AssemblyInstruction::AssemblyInstruction(const MCRegisterInfo &mri, MCInstPrinte
   this->hasImm = false;
   this->Imm = -1;
   pair<const char *, uint64_t> mnemonicPair = IP.getMnemonic(MI);
-  this->Mnemonic = string(mnemonicPair.first);
-  
+  string mnemonicString = string(mnemonicPair.first);
+  mnemonicString.erase(mnemonicString.find_last_not_of("\t") + 1);
+  this->Mnemonic = mnemonicString;
+  if(mnemonicString == "sb" || mnemonicString == "sh" || mnemonicString == "sw" || mnemonicString == "sd") { this->Store = true;}
+  else if(mnemonicString == "lb" || mnemonicString == "lh" || mnemonicString == "lw" || mnemonicString == "ld") this->Load = true;
+  else {this->Store = false; this->Load = false;}
 
   // Init the Reg Index
   // this->Rd = -1;
@@ -330,9 +334,16 @@ AssemblyInstruction::AssemblyInstruction(const MCRegisterInfo &mri, MCInstPrinte
 
       }
     }
+    // 1 For store instruction, rd is data to be stored, rs1 is base address, imm is offset. In order to do dependency analysis, put data to rs2 instead of rd
+    // 2 For branch instruction, rd ans rs1 are two reg to compare. In order to do dependency analysis, put rd to rs2
     if (i == 0) {
       if (operand.isReg()) {
-        this->Reg[0] = operand.getReg() - 37;
+        if (!this->Store && !this->IsBranch) {
+          this->Reg[0] = operand.getReg() - 37;
+        }else {
+          this->Reg[0] = -1;
+          this->Reg[2] = operand.getReg() - 37;
+        }
       } else if (operand.isImm()) {
         this->hasImm = true;
         this->Imm = int(operand.getImm());
@@ -414,6 +425,8 @@ AssemblyInstruction::~AssemblyInstruction() { }
 void AssemblyInstruction::setBranch(uint64_t Target) {
   this->IsBranch = true;
   this->BranchTarget = Target;
+  this->Reg[2] = this->Reg[0];
+  this->Reg[0] = -1;
 }
 
 void AssemblyInstruction::setCall(uint64_t Target, AssemblyFunction* targetFunc) {
@@ -425,6 +438,30 @@ void AssemblyInstruction::setCall(uint64_t Target, AssemblyFunction* targetFunc)
 uint64_t AssemblyInstruction::getAddress() const { return this->Address; }
 
 uint64_t AssemblyInstruction::getTarget() const { return this->BranchTarget; }
+
+string AssemblyInstruction::getFullMnemonic() const {
+  string result = this->Mnemonic;
+  result += " ";
+  if(this->Reg[0] >= 0) {
+    result += to_string(this->Reg[0]);
+  }
+  if(this->Reg[2] >= 0) {
+    result += ", ";
+    result += to_string(this->Reg[2]);
+  }
+  if(this->Reg[1] >= 0) {
+    result += ", ";
+    result += to_string(this->Reg[1]);
+  }
+  if(this->Imm != -1) {
+    result += ", ";
+    result += to_string(this->Imm);
+  }
+  // cout << "getFullMnemonic: " << result << endl;
+  return result;
+  // For store instruction, sw rd rs1 imm means rd->imm(rs1)
+  // For load instruction, lw rd, rs1, imm means imm(rs1)->rd
+}
 
 void AssemblyInstruction::dump() const {
   // printf("address: 0x%x\topcode: 0x%x\ttype: %c\n", this->Address, this->Opcode, this->Type);
@@ -440,7 +477,7 @@ void AssemblyInstruction::dump() const {
   if(this->IsCall) {
     printf("callTarget: %s\t", this->CallTarget->getName().c_str());
   }
-  printf("Mnemonic: %s\t", this->Mnemonic.c_str());
+  printf("Mnemonic: %s\t", this->getFullMnemonic().c_str());
   if(this->Prologue) {
     printf("IsPrologue\t");
   }
@@ -472,11 +509,11 @@ void AssemblyInstruction::dump() const {
     // printf("Edge.size() = %d\n",Edge.size() );
     // printf("Edge[1].size() = %d\n",Edge[1].size() );
     if(n->LocalEdge[RS1] != NULL)
-          printf("\tLocal Edge of RS1: Inst address: 0x%x\n ", LocalEdge[RS1]->getAddress());
+          printf("\tLocal Edge of RS1: Inst address: 0x%x  %s\n ", LocalEdge[RS1]->getAddress(), LocalEdge[RS1]->getFullMnemonic().c_str());
        
     for(int i = 0; i < n->GlobalEdge[RS1].size(); i++){
         if(n->GlobalEdge[RS1][i] != NULL)
-          printf("\tGlobal Edge of RS1: Inst address: 0x%x\n ", GlobalEdge[RS1][i]->getAddress());
+          printf("\tGlobal Edge of RS1: Inst address: 0x%x  %s\n ", GlobalEdge[RS1][i]->getAddress(), GlobalEdge[RS1][i]->getFullMnemonic().c_str());
    
     }
     printf("\n");
@@ -485,10 +522,10 @@ void AssemblyInstruction::dump() const {
   if(n->getRs2() != -1){
     //printf("AssemblyInstruction::dump() Checking Rs2..... \n\n");
     if(n->LocalEdge[RS2] != NULL)
-          printf("\tLocal Edge of RS2: Inst address: 0x%x\n ", LocalEdge[RS2]->getAddress()); 
+          printf("\tLocal Edge of RS2: Inst address: 0x%x  %s\n ", LocalEdge[RS2]->getAddress(), LocalEdge[RS2]->getFullMnemonic().c_str()); 
     for(int i = 0; i < n->GlobalEdge[RS2].size(); i++){
         if(n->GlobalEdge[RS2][i] != NULL)
-          printf("\tGlobal Edge of RS2: Inst address: 0x%x\n ", GlobalEdge[RS2][i]->getAddress());
+          printf("\tGlobal Edge of RS2: Inst address: 0x%x  %s\n ", GlobalEdge[RS2][i]->getAddress(), GlobalEdge[RS2][i]->getFullMnemonic().c_str());
     }
     printf("\n");
     //printf("AssemblyInstruction::dump() Check Rs2 Passed! \n\n");
@@ -499,11 +536,11 @@ void AssemblyInstruction::dump() const {
 
 
     if(n->LocalEdge[RS3] != NULL)
-          printf("\tLocal Edge of RS3: Inst address: 0x%x\n ", LocalEdge[RS3]->getAddress());
+          printf("\tLocal Edge of RS3: Inst address: 0x%x  %s\n ", LocalEdge[RS3]->getAddress(), LocalEdge[RS3]->getFullMnemonic().c_str());
        
     for(int i = 0; i < n->GlobalEdge[RS3].size(); i++){
         if(n->GlobalEdge[RS3][i] != NULL)
-          printf("\tGlobal Edge of RS3: Inst address: 0x%x\n ", GlobalEdge[RS3][i]->getAddress());
+          printf("\tGlobal Edge of RS3: Inst address: 0x%x  %s\n ", GlobalEdge[RS3][i]->getAddress(), GlobalEdge[RS3][i]->getFullMnemonic().c_str());
    
     }
 
@@ -697,6 +734,13 @@ void AssemblyInstruction::setEpilogue(){ Epilogue = true; }
 
 
 string AssemblyInstruction::getMnemonic(){return this->Mnemonic;}
+
+
+set<int>& AssemblyInstruction::getColors() {return this->colors;}
+void AssemblyInstruction::addColor(int c) {this->colors.insert(c);}
+bool AssemblyInstruction::hasColor(int c) {return this->colors.count(c) != 0;}
+
+
 
 
 

@@ -1369,6 +1369,8 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
   //for (const SectionRef &Section : ToolSectionFilter(*Obj));
 
   int times = 0;
+  int globalColor = 0;
+  int globalTIRColor = 0;
   for (const SectionRef &Section : ToolSectionFilter(*Obj)) {
     
     times++;
@@ -1741,6 +1743,8 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
           for(auto i = CFGBBs.begin();i!=CFGBBs.end();i++){
               cout << "BB[" << (*i)->getId() << "] successors size: " << (*i)->getSuccessors().size() << endl;
               (*i)->BuildLocalEdge();
+              (*i)->PaintColor(globalColor);
+              globalColor++;
           }
           printf("Local Edge Build for All BB Completes!");
 
@@ -2146,6 +2150,8 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
       }
       for(auto i = CFGBBs.begin();i!=CFGBBs.end();i++){
           (*i)->BuildLocalEdge();
+          (*i)->PaintColor(globalColor);
+          globalColor++;
       }
       printf("Local Edge Build done!\n");
       for(auto i = CFGBBs.begin();i!=CFGBBs.end();i++){
@@ -2153,7 +2159,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
       }
       printf("Global Edge Build done!\n");
 
-      //ass_CFG->dump();
+      ass_CFG->dump();
 
       for(auto i = CFGBBs.begin();i!=CFGBBs.end();i++){
           (*i)->BuildPhiNodes();
