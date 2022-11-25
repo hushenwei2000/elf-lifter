@@ -437,3 +437,49 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
 
 
 }
+
+
+
+
+void AssemblyCFG::ProcessFuncCall(){
+
+  cout << "\tEntering ProcessFuncCall()\n";
+  
+  int                   CallFlag   =    0;
+  AssemblyInstruction*  Call       =    NULL;
+
+
+  for (vector<AssemblyBasicBlock*>::iterator it = this->BasicBlocks.begin();
+       it != this->BasicBlocks.end(); it++) {
+    vector<AssemblyInstruction*> instrs = *((*it)->getInstructions());
+    
+    // BY DEFAULT,  we assume the instruction next to call uses the a0
+    // Double check if corner cases exist
+    for (auto it = instrs.begin(); it != instrs.end(); it++) {
+        if(CallFlag){
+            CallFlag = 0;
+            for(int i = RS1; i<=RS3; i++){
+              if((*it)->getRs(i) == 10 ||  (*it)->getRs(i) == 42)
+                  (*it)->setRd(Call->getRs(i));
+                  Call = NULL;
+                  break;
+            }
+        }
+
+        // TODO: jalr might be used and addresses need to be calculated
+        if((*it)->getIsCall()){ 
+          // RISC-V Call Process          
+          if(ISA_type >=3 && (*it)->getMnemonic() == "jal\t"){
+            CallFlag  =  1;
+            Call = (*it);
+            cout << "\t Debug::\t Processing Function Call "
+                 << (*it)->getMnemonic() << "\n";
+          }
+        } 
+    }
+  }
+
+  cout << "\tLeavinging ProcessFuncCall()\n";
+
+
+}

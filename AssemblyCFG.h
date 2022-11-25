@@ -80,6 +80,8 @@ public:
   int  getRealStack();
 
   GlobalData* ComputeGlobalAddr(AssemblyInstruction* lui);
+
+  void ProcessFuncCall();
   
 };
 

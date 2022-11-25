@@ -155,6 +155,19 @@ std::map<string, AssemblyFunction*> textSectionFunctions;
 std::vector<std::pair<string, uint64_t>> PLTFunctions;
 
 
+std::string MatchPLTFunction(uint64_t addr){
+
+    for(auto it:PLTFunctions){
+      if(it.second == addr)
+        return it.first;
+    }
+    
+    return "NULL";
+}
+
+
+
+
 
 GlobalData* MatchGlobalData(uint64_t addr){
   for(auto i = GLOBAL_DATA.begin(); i!=GLOBAL_DATA.end();i++){
@@ -1738,6 +1751,11 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
               }
             }
           }
+
+
+          ass_CFG->ProcessFuncCall();
+
+
           for(auto i = CFGBBs.begin();i!=CFGBBs.end();i++){
               cout << "BB[" << (*i)->getId() << "] successors size: " << (*i)->getSuccessors().size() << endl;
               (*i)->BuildLocalEdge();
@@ -1959,8 +1977,11 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
             uint64_t Target = ass_ins->getAddress() + ass_ins->getImm();
              AssemblyFunction* targetFunc = nullptr;
             if(Target >= pltStart && Target < pltEnd) {
-              // callTarget is in plt
-              targetFunc =  new AssemblyFunction("plt_function(unknown)", 0, 0);
+              std::string FuncName = MatchPLTFunction(Target);
+              if(FuncName!="NULL")
+                // callTarget is in plt
+                cout << "\tDEBUG:: Matching PLT Function \t" << FuncName << endl;
+                targetFunc =  new AssemblyFunction("plt_function("+FuncName+")" , 0, 0);
             }else {
               for(std::map<string, AssemblyFunction*>::iterator it = textSectionFunctions.begin(); it != textSectionFunctions.end(); it++) {
                 if(Target == it->second->getStartAddress()) {
@@ -1972,6 +1993,9 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
             }
             if(targetFunc){
               ass_ins->setCall(Target, targetFunc);
+              cout << "\tDEBUG::\tInst "<< ass_ins->getMnemonic() << " Calling Function " 
+                   << ass_ins->getCallTarget()->getName() <<endl;
+
               ass_ins->dump();
               uint64_t fallThruIndex = Index + Size;
               branchTargetSet.insert(fallThruIndex);
@@ -2144,6 +2168,10 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
           }
         }
       }
+
+      // Process JAL ra, imm => Call a0/fa0, imm
+      ass_CFG->ProcessFuncCall();
+
       for(auto i = CFGBBs.begin();i!=CFGBBs.end();i++){
           (*i)->BuildLocalEdge();
       }
@@ -2159,7 +2187,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
           (*i)->BuildPhiNodes();
       }
       printf("Phi Node Building for All BB Completes!\n\n");
-
+      
       ass_CFG->FindPrologue();
       ass_CFG->FindRet();
       ass_CFG->TraverseLoadStore();

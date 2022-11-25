@@ -32,5 +32,7 @@ GlobalData* MatchGlobalData(uint64_t addr);
 
 GlobalData* MatchGlobalSection(uint64_t addr);
 
+std::string MatchPLTFunction(uint64_t addr);
+
 
 #endif // LLVM_TOOLS_LLVM_MCTOLL_ASMUTILS_H

@@ -537,6 +537,8 @@ int32_t AssemblyInstruction::getRs3(){return this->Reg[3];}
 
 int32_t AssemblyInstruction::getRd(){return this->Reg[0];}
 
+int32_t AssemblyInstruction::setRd(int32_t rd){this->Reg[0] = rd ;}
+
 int AssemblyInstruction::getImm(){return this->Imm;}
 
 uint32_t AssemblyInstruction::getOpcode(){return this->Opcode;}

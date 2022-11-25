@@ -164,6 +164,7 @@ public:
 	int32_t getRs2();
   int32_t getRs3();
 	int32_t getRd();
+  int32_t setRd(int32_t rd);
 	int getImm();
   uint32_t getOpcode();
   string getMnemonic();
