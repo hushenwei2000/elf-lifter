@@ -2162,7 +2162,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
 
       ass_CFG->FindPrologue();
       ass_CFG->FindRet();
-      //ass_CFG->TraverseLoadStore();
+      ass_CFG->TraverseLoadStore();
       //ass_CFG->FindEpilogue();
       printf("Global Data Dump:\n");
 

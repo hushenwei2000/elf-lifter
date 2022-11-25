@@ -344,10 +344,34 @@ void AssemblyCFG::TraverseLoadStore(){
 
 GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* lui){
 
-    cout << "DEBUG:: Entering ComputeGlobalAddr()\n";
+    //cout << "DEBUG:: Entering ComputeGlobalAddr()\n";
     uint64_t addr = lui->getImm();
     addr <<= 20;
-    addr += lui->getLocalEdge(RD)->getImm(); 
+    AssemblyInstruction* IfAdd = lui->getLocalEdge(RD);
+
+    //cout << "\t DEBUG::ComputeGlobalAddr:: LUI Followed by Inst: " << IfAdd->getMnemonic() <<endl;
+    //cout << "\t DEBUG::ComputeGlobalAddr:: LUI Imm =             " << addr <<endl;
+
+
+    if(!IfAdd){
+      cout << "\t DEBUG::ComputeGlobalAddr:: No Instruction Depends on LUI: 0x"
+           << std::hex << lui->getAddress() <<endl; 
+      return NULL;
+    }
+    else if(IfAdd->getMnemonic()=="addi\t"){
+        cout << "\t DEBUG::ComputeGlobalAddr:: Found ADDI operation after LUI, Imm= 0x"
+             << std::hex << IfAdd->getImm(); 
+        addr += IfAdd->getImm();
+    }
+    else if(IfAdd->IsLoad()){
+        cout << "\t DEBUG::ComputeGlobalAddr:: Found LOAD operation after LUI, Imm= 0x"
+             << std::hex << IfAdd->getImm(); 
+        addr += IfAdd->getImm();
+    }
+    else
+      return NULL;
+
+
     GlobalData* G = NULL;
     G=MatchGlobalData(addr);
     if(!G){
@@ -355,7 +379,7 @@ GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* lui){
       G->offset = addr - G->addr;
     }
 
-    cout << "DEBUG:: Exiting ComputeGlobalAddr()\n";
+    //cout << "DEBUG:: Exiting ComputeGlobalAddr()\n";
 
 
     return G;
@@ -365,7 +389,7 @@ GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* lui){
 
 AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
 
-  cout << "DEBUG:: Entering FindDataSource()\n";
+  //cout << "DEBUG:: Entering FindDataSource()\n";
 
   AssemblyInstruction*            ret     =     NULL;
   GlobalData*                     G       =     NULL;
@@ -378,11 +402,13 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
   }
   // Check if the address points to global data
   else if(inst->getMnemonic() == "lui\t"){
-    inst->setDataRoot("RISCV_GLOBAL");
     G = ComputeGlobalAddr(inst);
-    if(G)
+    if(G){
       inst->setGlobalData(*G);
-    return inst;
+      inst->setDataRoot("RISCV_GLOBAL");
+      return inst;
+    }
+    return NULL;
   }
 
 
