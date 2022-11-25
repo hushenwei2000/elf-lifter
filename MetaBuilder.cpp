@@ -10,6 +10,7 @@
 using namespace std;
 
 namespace MetaTrans{
+    vector<string> InstTypeName = {"LOAD", "STORE", "COMPARE", "CALL", "BRANCH", "JUMP", "PHI", "ADD", "SUB", "MUL", "DIV", "REMAINDER", "AND", "OR", "XOR", "SHIFT", "NEG", "RET", "ALLOCATION", "ADDRESSING", "EXCEPTION", "SWAP", "MIN", "MAX", "SQRT", "FENCE", "CONVERT", "HINT"};
 
     MetaAsmBuilder::MetaAsmBuilder() {
         filterManager.addFilter(new AsmInstFilter());
@@ -34,6 +35,7 @@ namespace MetaTrans{
             .buildGraph()
             .buildMetaData()
             .printTIRinfo()
+            .paintColor(0)
             ;
         return mF;
     }
@@ -185,9 +187,22 @@ namespace MetaTrans{
         for_each(mF->bb_begin(), mF->bb_end(), [&] (MetaBB* bb) {
             std::cout << "-- Memory address of Meta BB: " << bb << " --" << "\n";
             for_each(bb->inst_begin(), bb->inst_end(), [&] (MetaInst* inst) { 
-                if (!inst->isMetaPhi())
+                if (!inst->isMetaPhi()) {
                     std::cout << "Meta instruction address: " << inst << " " << "\n";
-                else {
+                    std::vector<MetaOperand*> ops = inst->getOperandList();
+                    std::vector<InstType> types = inst->getInstType();
+                    cout << "Types: (" << types.size() << "): ";
+                    for(int i = 0; i < types.size(); i++) {
+                        cout << InstTypeName[types[i]] << ", ";
+                    }
+                    cout << endl << "Operands (" << ops.size() << "): ";
+                    for(int i = 0; i < ops.size(); i++) {
+                        if(ops[i]->isMetaInst()) {cout << "isMetaInst, ";}
+                        else if(ops[i]->isMetaArgument()) {cout << "isMetaArgument, ";}
+                        else if(ops[i]->isMetaConstant()) {cout << "isMetaConstant, ";}
+                    }
+                    cout << endl;
+                } else {
                     MetaPhi* phi = (MetaPhi*)inst;
                     std::cout << "Meta phi address: " << phi << "; Meta phi content: " << "\n";
                     for_each(phi->begin(), phi->end(), [&] (auto pair) {
@@ -199,6 +214,64 @@ namespace MetaTrans{
         });
 
         return *this;
+    }
+
+    void MetaAsmBuilder::paintColor(int startColor) {
+        std::cout << "\n\n<<== Coloring TIR for CFG: " << cfg << " ==>>" << "\n";
+        for_each(mF->bb_begin(), mF->bb_end(), [&] (MetaBB* bb) {
+            std::cout << "-- Coloring Meta BB: " << " --" << "\n";
+            for_each(bb->inst_begin(), bb->inst_end(), [&] (MetaInst* inst) { 
+                if (!inst->isMetaPhi())
+                    if(inst->isType(InstType::STORE)){
+                        std::vector<MetaOperand*> ops = inst->getOperandList();
+                        cout << "IsStore " << ops.size() <<  endl;
+                        for(int i = 0; i < ops.size(); i++) {
+                            if(ops[i]->isMetaInst()) {
+                                inst->addColor(startColor);
+                                printf("%x(%d) STORE,  -> \n", inst, startColor);
+                                paintInsColorRecursive((MetaInst*)(ops[i]), startColor, 0);
+                                startColor++;
+                            }
+                        }
+                    }else if(inst->isType(InstType::BRANCH)){
+                        cout << "IsSBranch" << endl;
+                        std::vector<MetaOperand*> ops = inst->getOperandList();
+                        for(int i = 0; i < ops.size(); i++) {
+                            if(ops[i]->isMetaInst()) {
+                                inst->addColor(startColor);
+                                printf("%x(%d) ", inst, startColor);
+                                paintInsColorRecursive((MetaInst*)(ops[i]), startColor, 0);
+                                startColor++;
+                            }
+                        }
+                    }
+                else {
+                    // TODO
+                }
+            });
+        });
+        std::cout << "\n\n<<== Coloring TIR for CFG End! " << cfg << " ==>>" << "\n";
+    }
+
+    void MetaAsmBuilder::paintInsColorRecursive(MetaInst* inst, int color, int depth) {
+        inst->addColor(color);
+        for(int i = -1; i < depth; i++) {cout << "  ";}
+        printf("%x(%d) ", inst, color);
+        std::vector<InstType> types = inst->getInstType();
+        for(int i = 0; i < types.size(); i++) {
+            cout << InstTypeName[types[i]] << ", ";
+        }
+        printf(" -> \n");
+        if(!inst->isType(InstType::LOAD) && !inst->isType(InstType::PHI)) { // Paint until `load` or `phi` or no upstream instruction
+            std::vector<MetaOperand*> ops = inst->getOperandList();
+            for(int i = 0; i < ops.size(); i++) {
+                if(ops[i]->isMetaInst()) {
+                    paintInsColorRecursive((MetaInst*)(ops[i]), color, depth + 1);
+                }
+            }
+        }else {
+            return;
+        }
     }
 
     pair<MetaBB*, MetaInst*> MetaAsmBuilder::visit(AssemblyBasicBlock* root, vector<AssemblyInstruction*>& leaves, std::unordered_set<AssemblyBasicBlock*>& visited, bool base) {

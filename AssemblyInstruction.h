@@ -89,6 +89,7 @@ private:
   //  LocalEdge[2]:RS2
   //  LocalEdge[3]:RS3
   vector<AssemblyInstruction*> LocalEdge = vector<AssemblyInstruction*>(4);
+  set<int> colors;
 
 
 
@@ -156,6 +157,7 @@ public:
   AssemblyFunction* getCallTarget() const;
   bool getIsCompressed() const;
   char getType() const;
+  string getFullMnemonic() const;
   void dump() const;
   int getSizeByte() const;
   uint32_t getOpcode() const;
@@ -169,7 +171,7 @@ public:
   uint32_t getOpcode();
   string getMnemonic();
   int BuildEdge(AssemblyInstruction* inst, int rs, int LocalOrGlobal);
-
+  
   uint64_t hashCode();
 
   //AssemblyInstruction* getEdge(int index);
@@ -204,6 +206,11 @@ public:
 
   void printArrays();
   void printEdges();
+
+  set<int>& getColors();
+  void addColor(int c);
+  bool hasColor(int c);
+
 
   void addDataSource(AssemblyInstruction* inst);
   std::vector<AssemblyInstruction*>& getDataSource();

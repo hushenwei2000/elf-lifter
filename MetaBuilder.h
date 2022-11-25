@@ -91,6 +91,10 @@ MetaAsmBuilder& setTypeMap(std::unordered_map<std::string, std::vector<InstType>
 
 MetaFunction* build();
 
+void paintColor(int startColor);
+
+void paintInsColorRecursive(MetaInst* ins, int color, int depth);
+
 };
 
 } // namespace MetaTrans
