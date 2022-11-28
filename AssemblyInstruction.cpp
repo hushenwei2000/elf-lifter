@@ -485,7 +485,7 @@ void AssemblyInstruction::dump() const {
     printf("IsEpilogue\t");
   }
   if(this->Load||this->Store){
-    printf("Data Root = %s\t", DataRoot);
+    printf("Data Root = %s\t", this->DataRoot);
     if(DataRoot == "RISCV_GLOBAL"){
       printf("Symbol Name = %s\t", GlobalSymbol.name);
       if(GlobalSymbol.offset)

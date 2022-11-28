@@ -133,7 +133,7 @@ private:
   // since the function can reside in lib, no dependency info is exposed
   // to the BT interface. But we can bind such heap info with function calls
   // -- linking load, store addresses with 
-  std::string DataRoot = "N/A";
+  std::string DataRoot = "NULL";
   
 
   AssemblyInstruction(const AssemblyInstruction&) = delete;

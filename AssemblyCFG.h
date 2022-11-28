@@ -14,6 +14,7 @@
 #include <string>
 #include "PHI.h"
 #include "AssemblyFunction.h"
+
 //#include "AssemblyInstruction.h"
 
 
@@ -82,6 +83,9 @@ public:
   GlobalData* ComputeGlobalAddr(AssemblyInstruction* lui);
 
   void ProcessFuncCall();
+
+
+  void ProcessRISCVGP();  
   
 };
 

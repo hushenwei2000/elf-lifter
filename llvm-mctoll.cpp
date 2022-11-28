@@ -155,6 +155,11 @@ std::map<string, AssemblyFunction*> textSectionFunctions;
 std::vector<std::pair<string, uint64_t>> PLTFunctions;
 
 
+// GP init value for RISC-V
+uint64_t  GP_BASE = 0;
+
+
+
 std::string MatchPLTFunction(uint64_t addr){
 
     for(auto it:PLTFunctions){
@@ -997,7 +1002,7 @@ static std::set<StringRef> ELFCRTSymbols = {
     "__libc_csu_init",
     "register_tm_clones",
     // Commented for raising global var of RISC-V ELF
-    "_start",
+    //"_start",
     "_dl_relocate_static_pie"};
 
 /*
@@ -2187,13 +2192,17 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
       }
       printf("Global Edge Build done!\n");
 
-      ass_CFG->dump();
+      //ass_CFG->dump();
 
       for(auto i = CFGBBs.begin();i!=CFGBBs.end();i++){
           (*i)->BuildPhiNodes();
       }
       printf("Phi Node Building for All BB Completes!\n\n");
       
+
+      if(ISA_type>=3)
+        ass_CFG->ProcessRISCVGP();
+
       ass_CFG->FindPrologue();
       ass_CFG->FindRet();
       ass_CFG->TraverseLoadStore();
