@@ -14,6 +14,7 @@
 #include <string>
 #include "PHI.h"
 #include "AssemblyFunction.h"
+
 //#include "AssemblyInstruction.h"
 
 
@@ -44,8 +45,6 @@ private:
   // The stack excludes Prologue & Epilogue
   int stacksize;
 
-
-
   AssemblyCFG(const AssemblyCFG &) = delete;
 
 
@@ -71,12 +70,22 @@ public:
   int FindMatchedEpilogue(int reg, int &size); 
   int FindRet();
 
+  AssemblyInstruction*  FindDataSource(AssemblyInstruction* inst);
+  void TraverseLoadStore();
+
+
+
   void setPhonyStack(int size);
   int  getPhonyStack();
   void setRealStack(int size);
   int  getRealStack();
 
+  GlobalData* ComputeGlobalAddr(AssemblyInstruction* lui);
 
+  void ProcessFuncCall();
+
+
+  void ProcessRISCVGP();  
   
 };
 

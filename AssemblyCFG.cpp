@@ -10,6 +10,9 @@
 #include "AssemblyCFG.h"
 #include "PHI.h"
 #include "AssemblyFunction.h"
+#include "ASMUtils.h"
+
+extern uint64_t  GP_BASE;
 
 
 using namespace llvm;
@@ -157,7 +160,7 @@ int AssemblyCFG::FindPrologue(){
       // cout << "DEBUG:: FindPrologue():: getMnemonic() = "<< it->getMnemonic() 
       //      << ", string width = "<< it->getMnemonic().length() << "\n";
 
-      if((*it)->getMnemonic() == "addi\t" || (*it)->getMnemonic() == "addiw\t")
+      if((*it)->getMnemonic() == "addi" || (*it)->getMnemonic() == "addiw")
         // SP reg for RISCV
         if((*it)->getRd() == 2 && (*it)->getRs1() == 2){
           this->setPhonyStack(abs((*it)->getImm()));
@@ -307,5 +310,247 @@ int AssemblyCFG::FindRet(){
   }
 
   return 0;
+
+}
+
+
+
+void AssemblyCFG::TraverseLoadStore(){
+
+  AssemblyInstruction* inst;
+
+  for (vector<AssemblyBasicBlock*>::iterator it = this->BasicBlocks.begin();
+       it != this->BasicBlocks.end(); it++) {
+    vector<AssemblyInstruction*> instrs = *((*it)->getInstructions());
+
+    for (auto it = instrs.begin(); it != instrs.end(); it++) {
+        if((*it)->IsLoad() || (*it)->IsStore()){
+          //cout<< "DEBUG::  TraverseLoadStore() found load store instructions\n";
+
+          if((*it)->getRs1() == 2)
+              (*it)->setDataRoot("RISCV_SP");
+              
+          // Need double check.....
+          // if((*it)->getRs1() == 10)
+          //     (*it)->setDataRoot("RISCV_HEAP");
+          else{  
+            inst = FindDataSource(*it);
+            if(inst){
+              (*it)->setDataRoot(inst->getDataRoot());
+              if((*it)->getDataRoot() == "RISCV_GLOBAL")
+                (*it)->setGlobalData(inst->getGlobalData());
+            }
+          }
+        }
+    } 
+  }
+}
+
+
+GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* inst){
+
+    cout << "DEBUG:: Entering ComputeGlobalAddr()\n";
+
+    GlobalData* G = NULL;
+    uint64_t addr; 
+
+    if(inst->getMnemonic()== "addi"){
+      addr = GP_BASE + inst->getImm();
+      cout << "\tDEBUG:: ComputeGlobalAddr:: Addr  = 0x" << std::hex << addr << endl;
+    }
+    else{
+    
+      AssemblyInstruction* lui = inst;
+
+      addr = lui->getImm();
+      addr <<= 12;
+      AssemblyInstruction* IfAdd = lui->getLocalEdge(RD);
+
+      //cout << "\t DEBUG::ComputeGlobalAddr:: LUI Followed by Inst: " << IfAdd->getMnemonic() <<endl;
+      //cout << "\t DEBUG::ComputeGlobalAddr:: LUI Imm =             " << addr <<endl;
+
+
+      if(!IfAdd){
+        cout << "\t DEBUG::ComputeGlobalAddr:: No Instruction Depends on LUI: 0x"
+             << std::hex << lui->getAddress() <<endl; 
+        return NULL;
+      }
+      else if(IfAdd->getMnemonic()=="addi"){
+          cout << "\t DEBUG::ComputeGlobalAddr:: Found ADDI operation after LUI, Imm= 0x"
+               << std::hex << IfAdd->getImm(); 
+          addr += IfAdd->getImm();
+      }
+      else if(IfAdd->IsLoad()){
+          cout << "\t DEBUG::ComputeGlobalAddr:: Found LOAD operation after LUI, Imm= 0x"
+               << std::hex << IfAdd->getImm(); 
+          addr += IfAdd->getImm();
+      }
+      else
+        return NULL;
+
+    }
+
+    G=MatchGlobalData(addr);
+    if(!G){
+      G=MatchGlobalSection(addr);
+      if(G)
+        G->offset = addr - G->addr;
+    }
+
+    //cout << "DEBUG:: Exiting ComputeGlobalAddr()\n";
+
+    return G;
+ 
+
+}
+
+
+AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
+
+  cout << "DEBUG:: Entering FindDataSource()\n";
+
+  AssemblyInstruction*            ret     =     NULL;
+  GlobalData*                     G       =     NULL;
+  int                             i       =     0;
+
+  // Check if the address points to stack SP
+  if(inst->getRd() == 2){
+    inst->setDataRoot("RISCV_SP");
+    return inst;
+  }
+  // addi rd, gp, imm
+  else if(inst->getMnemonic() == "addi" && inst->getRs1() == 3 && inst->getRd() != 3){
+    cout << "\tDEBUG::FindDataSource():: Found addi " << inst->getRd()
+         << ", gp, " << inst->getImm() << endl;
+
+    G = ComputeGlobalAddr(inst);
+    if(G){
+      inst->setGlobalData(*G);
+      inst->setDataRoot("RISCV_GLOBAL");
+      return inst;
+    }
+    return NULL;
+  }
+  // Check if the address points to global data
+  // COMMNTED Due to the GP instructions used by RISC-V compiler toolchain
+  // else if(inst->getMnemonic() == "lui\t"){
+  //   G = ComputeGlobalAddr(inst);
+  //   if(G){
+  //     inst->setGlobalData(*G);
+  //     inst->setDataRoot("RISCV_GLOBAL");
+  //     return inst;
+  //   }
+  //   return NULL;
+  // }
+
+
+  for(i = RS1; i<=RS3; i++){
+    if(inst->HasLocalEdge(i)){
+      ret = FindDataSource(inst->getLocalEdge(i));
+      if(ret)
+        return ret;
+    }
+  }
+  
+  for(i = RS1; i<=RS3; i++){
+    if(inst->HasGlobalEdge(i)){
+      for(auto it = inst->getGlobalEdge(i).begin(); it != inst->getGlobalEdge(i).end();it++){
+        // skip the inst itself for loops to avoid infinite recursive calls
+        if(inst == *it) 
+          continue;   
+        ret = FindDataSource((*it));
+        if(ret)
+          return ret;
+      }
+    }
+  }
+  
+  return NULL;
+
+
+}
+
+
+
+
+void AssemblyCFG::ProcessFuncCall(){
+
+  cout << "\tEntering ProcessFuncCall()\n";
+  
+  int                   CallFlag   =    0;
+  AssemblyInstruction*  Call       =    NULL;
+
+
+  for (vector<AssemblyBasicBlock*>::iterator it = this->BasicBlocks.begin();
+       it != this->BasicBlocks.end(); it++) {
+    vector<AssemblyInstruction*> instrs = *((*it)->getInstructions());
+    
+    // BY DEFAULT,  we assume the instruction next to call uses the a0
+    // Double check if corner cases exist
+    for (auto it = instrs.begin(); it != instrs.end(); it++) {
+        if(CallFlag){
+            CallFlag = 0;
+            for(int i = RS1; i<=RS3; i++){
+              if((*it)->getRs(i) == 10 ||  (*it)->getRs(i) == 42)
+                  (*it)->setRd(Call->getRs(i));
+                  Call = NULL;
+                  break;
+            }
+        }
+
+        // TODO: jalr might be used and addresses need to be calculated
+        if((*it)->getIsCall()){ 
+          // RISC-V Call Process          
+          if(ISA_type >=3 && (*it)->getMnemonic() == "jal"){
+            CallFlag  =  1;
+            Call = (*it);
+            cout << "\t Debug::\t Processing Function Call "
+                 << (*it)->getMnemonic() << "\n";
+          }
+        } 
+    }
+  }
+
+  cout << "\tLeavinging ProcessFuncCall()\n";
+
+
+}
+
+
+void AssemblyCFG::ProcessRISCVGP(){
+
+  uint64_t addr = 0;
+
+  cout << "\tDEBUG:: ProcessRISCVGP():: Function Name is " 
+       << this->getFunction().getName() << endl;
+       
+  if(this->getFunction().getName() == "_start"){
+     cout << "\tDEBUG:: ProcessRISCVGP():: Entering _start\n "; 
+
+    for (vector<AssemblyBasicBlock*>::iterator it = this->BasicBlocks.begin();
+        it != this->BasicBlocks.end(); it++) {
+      
+        vector<AssemblyInstruction*> instrs = *((*it)->getInstructions());
+        for (auto it = instrs.begin(); it != instrs.end(); it++) {
+            // cout << "\tDEBUG:: ProcessRISCVGP():: Checking instruction : "
+            //      << (*it)->getMnemonic() << ", \tSize = " <<  (*it)->getMnemonic().size() << endl;
+
+            // auipc gp, imm
+            if((*it)->getMnemonic() == "auipc" && (*it)->getRd()== 3){
+                //cout << "\tDEBUG:: ProcessRISCVGP():: Find auipc!\n "; 
+
+                auto next = it + 1;
+                // addi gp, gp, imm
+                if((*next)->getMnemonic() == "addi" && (*next)->getRd()==3 && (*next)->getRs1()==3){
+                     GP_BASE   =     (*it)->getAddress();
+                     GP_BASE   +=    (*it)->getImm() << 12;
+                     GP_BASE   +=    (*next)->getImm();
+                     cout << "\tDEBUG:: GP_BASE = " << GP_BASE << endl;
+                     return;
+                }
+            }
+        }
+    }
+  }
 
 }

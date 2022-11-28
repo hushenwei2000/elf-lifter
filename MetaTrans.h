@@ -183,6 +183,8 @@ namespace MetaTrans {
 
             InstMetaData metaData;
 
+            std::set<int> colors;
+
         public:
 
             MetaInst();
@@ -225,6 +227,10 @@ namespace MetaTrans {
             std::string virtual toString() override;
 
             bool virtual isMetaPhi();
+
+            void addColor(int c);
+
+            std::set<int>& getColors();
 
     };
 

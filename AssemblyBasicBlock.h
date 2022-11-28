@@ -85,6 +85,15 @@ public:
                         int RegID,
                         vector<set<int>>& visited);
 
+  int PaintColor(int StartColor);
+  void paintInsColorRecursive(AssemblyInstruction* ins, int tracedReg, int color, int depth);
+  string getFullMnemonic();
+
+
+
+
+
+  int FindLoadStore();
 };
 
 #endif // LLVM_TOOLS_LLVM_MCTOLL_ASSEMBLYBASICBLOCK_H

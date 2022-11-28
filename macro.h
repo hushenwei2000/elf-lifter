@@ -44,8 +44,8 @@ extern const set<int> RV_UNKNOWN;  // ECALL, EBREAK, CSR, fence
 
 
 // RISC-V LOAD/STORE OPCODE
-#define RVLOAD    0000011
-#define RVSTORE   0100011
+#define RVLOAD    0b0000011
+#define RVSTORE   0b0100011
 
 
 

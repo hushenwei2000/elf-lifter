@@ -13,6 +13,7 @@
 #include "llvm/MC/MCInstPrinter.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "AssemblyFunction.h"
+#include "ASMUtils.h"
 /*
 #define GET_REGINFO_ENUM
 #include "build/lib/Target/RISCV/RISCVGenRegisterInfo.inc"
@@ -88,6 +89,7 @@ private:
   //  LocalEdge[2]:RS2
   //  LocalEdge[3]:RS3
   vector<AssemblyInstruction*> LocalEdge = vector<AssemblyInstruction*>(4);
+  set<int> colors;
 
 
 
@@ -118,9 +120,27 @@ private:
   bool Epilogue = false;
 
 
+  // // The source is traversed all the way back to the address of source  
+  // // data and serves as metadata to help distinguish instructions
+  // // It only records LOAD or STORE instructions
+  // std::vector<AssemblyInstruction*> DataSource;
+
+
+  // Data source can only be one of the following 3
+  // Stack (SP)
+  // Heap: a0
+  // Returned pointer from a function can be hard to track the source,
+  // since the function can reside in lib, no dependency info is exposed
+  // to the BT interface. But we can bind such heap info with function calls
+  // -- linking load, store addresses with 
+  std::string DataRoot = "NULL";
+  
 
   AssemblyInstruction(const AssemblyInstruction&) = delete;
   
+
+  GlobalData GlobalSymbol;
+
 
 protected:
   AssemblyInstruction();
@@ -137,6 +157,7 @@ public:
   AssemblyFunction* getCallTarget() const;
   bool getIsCompressed() const;
   char getType() const;
+  string getFullMnemonic() const;
   void dump() const;
   int getSizeByte() const;
   uint32_t getOpcode() const;
@@ -145,11 +166,12 @@ public:
 	int32_t getRs2();
   int32_t getRs3();
 	int32_t getRd();
+  int32_t setRd(int32_t rd);
 	int getImm();
   uint32_t getOpcode();
   string getMnemonic();
   int BuildEdge(AssemblyInstruction* inst, int rs, int LocalOrGlobal);
-
+  
   uint64_t hashCode();
 
   //AssemblyInstruction* getEdge(int index);
@@ -184,6 +206,19 @@ public:
 
   void printArrays();
   void printEdges();
+
+  set<int>& getColors();
+  void addColor(int c);
+  bool hasColor(int c);
+
+
+  void addDataSource(AssemblyInstruction* inst);
+  std::vector<AssemblyInstruction*>& getDataSource();
+  void setDataRoot(string source);
+  std::string getDataRoot();
+
+  GlobalData getGlobalData();
+  void setGlobalData(GlobalData ptr);
 
 };
 
