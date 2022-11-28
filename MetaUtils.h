@@ -69,6 +69,8 @@ namespace MetaTrans {
     class MetaUtil {
         
         public:
+
+            static void compareCFG(MetaBB* x, MetaBB* y);
                 
             static void printValueType(Value* value);
 

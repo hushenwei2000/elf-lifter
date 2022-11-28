@@ -12,7 +12,17 @@ using namespace std;
 namespace MetaTrans{
 
     MetaAsmBuilder::MetaAsmBuilder() {
-        filterManager.addFilter(new AsmInstFilter());
+        filterManager
+            .addFilter(new AsmArgFilter())
+            .addFilter(new AsmConstantFilter())
+            .addFilter(new AsmInstFilter())
+            .addFilter(new AsmBBFilter())
+            .addFilter(new AsmFuncFilter())
+            ;
+    }
+
+    MetaAsmBuilder::~MetaAsmBuilder() {
+        filterManager.clear();
     }
 
     MetaAsmBuilder& MetaAsmBuilder::setAsmCFG(AssemblyCFG* c) {
@@ -64,6 +74,7 @@ namespace MetaTrans{
     MetaAsmBuilder& MetaAsmBuilder::buildGraph() {
         printf("\n*** Building Graph ... ***\n");
         for_each(cfg->begin(), cfg->end(), [&] (AssemblyBasicBlock* bb) {
+            copyBasicBlockDependency(bb);
             for_each(bb->begin(), bb->end(), [&] (AssemblyInstruction* inst) { copyLocalEdge(inst); });
         });
         for (auto i : crossInsts) copyGlobalEdge(i);
@@ -110,6 +121,15 @@ namespace MetaTrans{
 
     AssemblyBasicBlock* MetaAsmBuilder::findAsmBB(AssemblyInstruction* asmInst) {
         return (cfg->getBasicBlocks())[asmInst->getBB()];
+    }
+
+    void MetaAsmBuilder::copyBasicBlockDependency(AssemblyBasicBlock* asmBB) {
+        MetaBB* curBB = bbMap[asmBB->hashCode()];
+        for (auto it = (*asmBB).suc_begin(); it != (*asmBB).suc_end(); ++it) {
+            MetaBB* nextBB = bbMap[(*it)->hashCode()];
+            curBB->addNextBB(nextBB);
+        }
+
     }
 
     void MetaAsmBuilder::copyLocalEdge(AssemblyInstruction* asmInst) {

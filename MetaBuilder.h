@@ -21,28 +21,28 @@ friend class AsmInstFilter;
 friend class AsmBBFilter;
 friend class AsmFuncFilter;
 
-AssemblyCFG* cfg;
+AssemblyCFG*    cfg;
 
-MetaFunction* mF;
+MetaFunction*   mF;
 
-std::unordered_map<string, std::vector<InstType>>* typeMap;
+std::unordered_map<string, std::vector<InstType>>*      typeMap;
 
 // Auxiliary map, record the reflection between primitive type and Meta type.
 
-std::unordered_map<uint64_t, MetaBB*> bbMap;
+std::unordered_map<uint64_t, MetaBB*>                   bbMap;
 
-std::unordered_map<uint64_t, MetaInst*> instMap;
+std::unordered_map<uint64_t, MetaInst*>                 instMap;
 
 // std::unordered_map<class PHI*, MetaPhi*> phiMap;
 
-std::unordered_map<uint64_t, MetaConstant*> constantMap;
+std::unordered_map<uint64_t, MetaConstant*>             constantMap;
 
-std::unordered_map<uint64_t, MetaArgument*> argMap;
+std::unordered_map<uint64_t, MetaArgument*>             argMap;
 
 // Assembly instructions that with global edges.
-std::vector<AssemblyInstruction*> crossInsts;
+std::vector<AssemblyInstruction*>                       crossInsts;
 
-FilterManager filterManager;
+FilterManager                                           filterManager;
 
 MetaAsmBuilder& clearAuxMaps();
 
@@ -70,6 +70,8 @@ MetaOperand* findMetaOperand(Value *v);
 
 AssemblyBasicBlock* findAsmBB(AssemblyInstruction* asmInst);
 
+void copyBasicBlockDependency(AssemblyBasicBlock* asmBB);
+
 // copy instruction dependencies from LLVM IR.
 void copyLocalEdge(AssemblyInstruction* curInst);
 
@@ -84,6 +86,8 @@ pair<MetaBB*, MetaInst*> visit(AssemblyBasicBlock* root, std::vector<AssemblyIns
 public:
 
 MetaAsmBuilder();
+
+~MetaAsmBuilder();
 
 MetaAsmBuilder& setAsmCFG(AssemblyCFG* c);
 

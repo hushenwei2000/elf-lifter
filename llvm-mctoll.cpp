@@ -274,8 +274,8 @@ void RecordGlobalSection(string name,uint64_t addr, int size){
 bool RISCV_ISA = false;
 
 
-
-void static DumpTIR();
+void static DumpIR2TIR(); 
+void static DumpASM2TIR();
 
 
 static cl::OptionCategory LLVMMCToLLCategory("llvm-mctoll options");
@@ -2080,7 +2080,8 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
       cout << msg << endl;
     }
 
-    DumpTIR();
+    DumpASM2TIR();
+    DumpIR2TIR();
 
     assInstrsOfFunction.clear();
 
@@ -2249,7 +2250,10 @@ static void DumpInput(StringRef file) {
 
 static MetaTrans::MetaAsmBuilder builder;
 
-static void DumpTIR() {
+static void DumpIR2TIR() {
+}
+
+static void DumpASM2TIR() {
   std::cout << "\n//==-------------------- START DUMP TIR --------------------==//" << "\n";
   for (AssemblyCFG* cfg : cfgs)
     MetaTrans::MetaFunction* mF = builder
