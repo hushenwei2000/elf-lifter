@@ -12,7 +12,7 @@
 #include "AssemblyFunction.h"
 #include "ASMUtils.h"
 
-extern uint64_t  GP_BASE;
+extern int64_t  GP_BASE;
 
 
 using namespace llvm;
@@ -317,6 +317,7 @@ int AssemblyCFG::FindRet(){
 
 void AssemblyCFG::TraverseLoadStore(){
 
+  cout << "\tDEBUG:: Entering TraverseLoadStore()\n";
   AssemblyInstruction* inst;
 
   for (vector<AssemblyBasicBlock*>::iterator it = this->BasicBlocks.begin();
@@ -325,7 +326,7 @@ void AssemblyCFG::TraverseLoadStore(){
 
     for (auto it = instrs.begin(); it != instrs.end(); it++) {
         if((*it)->IsLoad() || (*it)->IsStore()){
-          //cout<< "DEBUG::  TraverseLoadStore() found load store instructions\n";
+          cout<< "DEBUG::  TraverseLoadStore() Found Load/Store instructions\n";
 
           if((*it)->getRs1() == 2)
               (*it)->setDataRoot("RISCV_SP");
@@ -352,11 +353,11 @@ GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* inst){
     cout << "DEBUG:: Entering ComputeGlobalAddr()\n";
 
     GlobalData* G = NULL;
-    uint64_t addr; 
+    int64_t addr; 
 
     if(inst->getMnemonic()== "addi"){
       addr = GP_BASE + inst->getImm();
-      cout << "\tDEBUG:: ComputeGlobalAddr:: Addr  = 0x" << std::hex << addr << endl;
+      printf ("\tDEBUG:: ComputeGlobalAddr:: Addr  = %d\n", addr );
     }
     else{
     
@@ -397,7 +398,10 @@ GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* inst){
         G->offset = addr - G->addr;
     }
 
-    //cout << "DEBUG:: Exiting ComputeGlobalAddr()\n";
+    if(G)
+      cout <<"\tDEBUG:: MatchGlobalData: "<< G->name << endl;
+
+    cout << "DEBUG:: Exiting ComputeGlobalAddr()\n";
 
     return G;
  
@@ -413,6 +417,10 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
   GlobalData*                     G       =     NULL;
   int                             i       =     0;
 
+
+  cout << "\tDEBUG::FindDataSource():: Found instruction " << inst->getMnemonic()
+         << "\t ,Addr = 0x" << std::hex<< inst->getAddress() << endl;
+
   // Check if the address points to stack SP
   if(inst->getRd() == 2){
     inst->setDataRoot("RISCV_SP");
@@ -420,8 +428,9 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
   }
   // addi rd, gp, imm
   else if(inst->getMnemonic() == "addi" && inst->getRs1() == 3 && inst->getRd() != 3){
-    cout << "\tDEBUG::FindDataSource():: Found addi " << inst->getRd()
-         << ", gp, " << inst->getImm() << endl;
+    cout << "\tDEBUG::FindDataSource():: Found addi " << std::dec << inst->getRd()
+         << ", gp, 0x" << std::dec << inst->getImm() << endl;
+    printf("\t Imm: %d\n", inst->getImm());
 
     G = ComputeGlobalAddr(inst);
     if(G){
@@ -545,7 +554,7 @@ void AssemblyCFG::ProcessRISCVGP(){
                      GP_BASE   =     (*it)->getAddress();
                      GP_BASE   +=    (*it)->getImm() << 12;
                      GP_BASE   +=    (*next)->getImm();
-                     cout << "\tDEBUG:: GP_BASE = " << GP_BASE << endl;
+                     cout << "\tDEBUG:: GP_BASE = 0x" << std::hex <<GP_BASE << endl;
                      return;
                 }
             }
