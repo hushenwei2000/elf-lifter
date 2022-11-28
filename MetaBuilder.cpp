@@ -13,6 +13,7 @@ namespace MetaTrans{
 
     MetaAsmBuilder::MetaAsmBuilder() {
         filterManager
+            .addFilter(new MetaIDFilter())
             .addFilter(new AsmArgFilter())
             .addFilter(new AsmConstantFilter())
             .addFilter(new AsmInstFilter())
@@ -206,7 +207,7 @@ namespace MetaTrans{
             std::cout << "-- Memory address of Meta BB: " << bb << " --" << "\n";
             for_each(bb->inst_begin(), bb->inst_end(), [&] (MetaInst* inst) { 
                 if (!inst->isMetaPhi())
-                    std::cout << "Meta instruction address: " << inst << " " << "\n";
+                    std::cout << "Meta instruction address: " << inst << " " << "\n" << inst->toString() << "\n";
                 else {
                     MetaPhi* phi = (MetaPhi*)inst;
                     std::cout << "Meta phi address: " << phi << "; Meta phi content: " << "\n";

@@ -1,5 +1,6 @@
 #include "llvm/Support/raw_ostream.h"
 #include "MetaTrans.h"
+#include "MetaUtils.h"
 
 namespace MetaTrans { 
     
@@ -41,6 +42,10 @@ namespace MetaTrans {
 //===-------------------------------------------------------------------------------===//
 /// Meta Operand implementation.
 
+    MetaOperand& MetaOperand::setID(int id) { this->id = id; return* this; }
+
+    int MetaOperand::getID() { return id; }
+
     bool MetaOperand::isMetaConstant() { return false; }
 
     bool MetaOperand::isMetaArgument() { return false; }
@@ -48,6 +53,8 @@ namespace MetaTrans {
     bool MetaOperand::isMetaInst() { return false; }
 
     MetaOperand::~MetaOperand() { }
+
+    std::string MetaOperand::toString() { return "Operand"; }
 
 //===-------------------------------------------------------------------------------===//
 /// Meta Constant implementation.
@@ -204,6 +211,15 @@ namespace MetaTrans {
 
     bool MetaInst::isMetaPhi() { return false; }
 
+    std::string MetaInst::toString() {
+        std::string opList = "[";
+        for (MetaOperand* oprand : operandList) { opList = opList + std::to_string(oprand->getID()) + ","; }
+        if (operandList.size() == 0) opList = "null";
+        else opList[opList.length() - 1] = ']';
+        std::string str = "";
+        return str + "{" + "\"id\":" + std::to_string(id) + ",\"type\":" + MetaUtil::toString(type) + "," + "\"operandList\":" + opList + "}";
+    }
+
 //===-------------------------------------------------------------------------------===//
 /// Meta Phi Instruction implementation.
 
@@ -314,6 +330,8 @@ namespace MetaTrans {
         return *this;
     }
 
+    MetaBB& MetaBB::setID(int id) { this->id = id; return* this; }
+
     std::vector<MetaBB*> MetaBB::getNextBB() { return successors; }
 
     MetaBB* MetaBB::getNextBB(int index) { return successors[index]; }
@@ -327,6 +345,8 @@ namespace MetaTrans {
     int MetaBB::getInstNum() { return instList.size(); }
 
     MetaFunction* MetaBB::getParent() { return parent; }
+
+    int MetaBB::getID() { return id; }
 
     std::vector<MetaInst*>::iterator MetaBB::inst_begin() { return instList.begin(); }
 
@@ -390,6 +410,10 @@ namespace MetaTrans {
         bbs.push_back(newBB);
         return newBB;
     }
+
+    std::vector<MetaBB*>::iterator MetaFunction::begin() { return bb_begin(); }
+
+    std::vector<MetaBB*>::iterator MetaFunction::end() { return bb_end(); }
 
     std::vector<MetaBB*>::iterator MetaFunction::bb_begin() { return bbs.begin(); }
 

@@ -66,15 +66,24 @@ namespace MetaTrans {
     class MetaOperand {
         private:
         protected:
+
+            int id;
+
         public:
 
-        virtual bool isMetaConstant();
-        
-        virtual bool isMetaArgument();
+            MetaOperand& setID(int id);
 
-        virtual bool isMetaInst();
-        
-        virtual ~MetaOperand();
+            int getID();
+
+            virtual bool isMetaConstant();
+            
+            virtual bool isMetaArgument();
+
+            virtual bool isMetaInst();
+            
+            virtual ~MetaOperand();
+
+            virtual std::string toString();
 
     };
 
@@ -213,6 +222,8 @@ namespace MetaTrans {
 
             bool virtual isMetaInst() override;
 
+            std::string virtual toString() override;
+
             bool virtual isMetaPhi();
 
     };
@@ -248,6 +259,8 @@ namespace MetaTrans {
     class MetaBB {
         private:
         protected:
+
+            int id;
 
             std::vector<MetaInst*> instList;
             
@@ -288,6 +301,8 @@ namespace MetaTrans {
 
             MetaBB& setParent(MetaFunction* mF);
 
+            MetaBB& setID(int id);
+
             std::vector<MetaBB*> getNextBB();
 
             MetaBB* getNextBB(int index);
@@ -297,6 +312,8 @@ namespace MetaTrans {
             MetaInst* getTerminator();
 
             MetaFunction* getParent();
+
+            int getID();
 
             std::vector<MetaInst*>& getInstList();
 
@@ -360,6 +377,10 @@ namespace MetaTrans {
 
             // create a new bb at the end of bb list.
             MetaBB* buildBB();
+
+            std::vector<MetaBB*>::iterator begin();
+
+            std::vector<MetaBB*>::iterator end();
 
             std::vector<MetaBB*>::iterator bb_begin();
 

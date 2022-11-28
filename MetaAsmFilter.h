@@ -43,4 +43,13 @@ namespace MetaTrans {
 
     };
 
+    // fill id for each meta datastructure
+    class MetaIDFilter : public Filter {
+
+        public:
+
+            virtual void doFilter(FilterTarget& target, FilterChain& chain) override;
+
+    };
+
 }

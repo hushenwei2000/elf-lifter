@@ -114,6 +114,8 @@ namespace MetaTrans {
 
             static std::string toString(InstType type);
 
+            static std::string toString(std::vector<InstType> type);
+
             static DataType extractDataType(Type& dataType);
 
             static int extractDataWidth(Type& dataType);
