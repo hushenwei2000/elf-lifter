@@ -485,11 +485,11 @@ void AssemblyInstruction::dump() const {
     printf("IsEpilogue\t");
   }
   if(this->Load||this->Store){
-    printf("Data Root = %s\t", this->DataRoot);
+    cout << "Data Root = " << this->DataRoot << "\t";
     if(DataRoot == "RISCV_GLOBAL"){
-      printf("Symbol Name = %s\t", GlobalSymbol.name);
+      cout << "Symbol Name = " << GlobalSymbol.name << "\t" ;
       if(GlobalSymbol.offset)
-        printf("Offset = %d\t", GlobalSymbol.offset);
+        cout << "Offset = " << GlobalSymbol.offset << "\t";
     }
     
   }
