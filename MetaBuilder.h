@@ -98,7 +98,7 @@ MetaFunction* build();
 
 void paintColor(int startColor);
 
-void paintInsColorRecursive(MetaInst* ins, int color, int depth);
+void paintInsColorRecursive(MetaInst* ins, int color, int type, int depth);
 
 };
 

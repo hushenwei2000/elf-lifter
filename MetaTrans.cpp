@@ -3,7 +3,6 @@
 #include "MetaUtils.h"
 
 namespace MetaTrans { 
-    const char *InstTypeName[] = {"LOAD", "STORE", "COMPARE", "CALL", "BRANCH", "JUMP", "PHI", "ADD", "SUB", "MUL", "DIV", "REMAINDER", "AND", "OR", "XOR", "SHIFT", "NEG", "RET", "ALLOCATION", "ADDRESSING", "EXCEPTION", "SWAP", "MIN", "MAX", "SQRT", "FENCE", "CONVERT", "HINT"};
     
 //===-------------------------------------------------------------------------------===//
 /// Function Mata Data implementation.
@@ -220,9 +219,16 @@ namespace MetaTrans {
         return str + "{" + "\"id\":" + std::to_string(id) + ",\"isMetaPhi\":false,\"type\":" + MetaUtil::toString(type) + "," + "\"operandList\":" + opList + "}";
     }
 
-    void MetaInst::addColor(int c) { colors.insert(c); }
+    void MetaInst::addColor(int c, int t) { colors.insert(ColorData(c,t)); }
 
-    std::set<int>& MetaInst::getColors() { return colors; }
+    std::set<ColorData>& MetaInst::getColors() { return colors; }
+
+    bool MetaInst::hasColor(int c) {
+        for(auto & each : colors) {
+            if (each.color == c) return true;
+        }
+        return false;
+    }
 
 //===-------------------------------------------------------------------------------===//
 /// Meta Phi Instruction implementation.

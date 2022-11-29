@@ -1514,19 +1514,79 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
                       << SectionName.data() << "\n");
     cout << "BEGIN Disassembly of Functions in Section: " << SectionName.data() << endl;
     vector<AssemblyCFG*> allCFGs;
+
+    // Reorder symbols to place the RISC-V _start function to the beginning 
+    // _start function handles the global pointer (global variables)
+
+
+
+    std::vector<uint64_t> end_addr;
+    
+    for ( auto si = 0; si != Symbols.size(); si++){ 
+     
+      end_addr.push_back(Symbols[si + 1].Addr - SectionAddr);
+      std::cout<< "\t DEBUG:: Func symbol:  " << Symbols[si].Name.str() 
+               << "\t Start = " << Symbols[si].Addr - SectionAddr
+               << "\t End   = " << Symbols[si + 1].Addr - SectionAddr <<endl;
+      
+    }
+
+    if(ISA_type >=3){
+
+    unsigned  start   = 0;
+    int       found   = 0;
+    int       fun     = -1;
+    for ( start = 0; start != Symbols.size(); start++) {
+        if(Symbols[start].Name.str()== ".text" && fun == -1)
+            fun = start+1;
+
+        if(Symbols[start].Name.str()=="_start"){
+          found = 1;
+          break;
+        }
+    }
+
+
+    if(found){
+      std::cout << "\tDEBUG:: _start function symbol index in .text is " << start << endl;
+      std::cout << "\tDEBUG:: function symbol index in .text starts from " << fun << endl;
+      std::cout << "\tDEBUG:: The first function symbol is " << Symbols[fun].Name.str() << endl;
+
+    }
+
+    
+    if(found && start){
+        auto swap       =   Symbols[start];        
+        Symbols[start]  =   Symbols[fun];
+        Symbols[fun]    =   swap;
+
+        auto end        =   end_addr[start];
+        end_addr[start] =   end_addr[fun];
+        end_addr[fun]   =   end;
+    }
+    }
+
+
+
     for (unsigned si = 0, se = Symbols.size(); si != se; ++si) {
       uint64_t Start = Symbols[si].Addr - SectionAddr;
       // The end is either the section end or the beginning of the next
       // symbol.
+      // uint64_t End =
+      //     (si == se - 1) ? SectSize : Symbols[si + 1].Addr - SectionAddr;
       uint64_t End =
-          (si == se - 1) ? SectSize : Symbols[si + 1].Addr - SectionAddr;
+          (si == se - 1) ? SectSize : end_addr[si];
       // Don't try to disassemble beyond the end of section contents.
       if (End > SectSize)
         End = SectSize;
       // If this symbol has the same address as the next symbol, then skip it.
-      if (Start >= End)
-        continue;
 
+      
+      if (Start >= End ){
+        std::cout << "\tWARNING:: Function End Address < Start Address!!! Skipping Function:\t"
+                  << Symbols[si].Name.str() << endl;
+        continue;
+      }
       // Check if we need to skip symbol
       // Skip if the symbol's data is not between StartAddress and StopAddress
       if (End + SectionAddr < StartAddress ||
@@ -1784,7 +1844,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
           printf("Phi Node Building for All BB Completes!");
          
         
-          //ass_CFG->ProcessRISCVGP();
+          ass_CFG->ProcessRISCVGP();
 
           
           //ass_CFG->TraverseLoadStore();
@@ -2401,17 +2461,17 @@ static void DumpInput(StringRef file) {
 
 static MetaTrans::MetaAsmBuilder builder;
 
-static void DumpIR2TIR() {
-}
-
-static void DumpASM2TIR() {
+static void DumpTIR() {
+  int glbcolor = 0;
   std::cout << "\n//==-------------------- START DUMP TIR --------------------==//" << "\n";
-  for (AssemblyCFG* cfg : cfgs)
+  for (AssemblyCFG* cfg : cfgs) {
     MetaTrans::MetaFunction* mF = builder
                                     .setAsmCFG(cfg)
                                     .setTypeMap(MetaTrans::YamlUtil::parseAsmMapConfig("asm.yml"))
                                     .build()
                                     ;
+    MetaTrans::MetaUtil::paintColor(mF, glbcolor++);
+  }
   std::cout << "\n//==--------------------  END DUMP TIR  --------------------==//" << "\n\n";
 }
 

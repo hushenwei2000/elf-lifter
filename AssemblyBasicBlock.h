@@ -86,7 +86,7 @@ public:
                         vector<set<int>>& visited);
 
   int PaintColor(int StartColor);
-  void paintInsColorRecursive(AssemblyInstruction* ins, int tracedReg, int color, int depth);
+  void paintInsColorRecursive(AssemblyInstruction* ins, int tracedReg, int color, int type, int depth);
   string getFullMnemonic();
 
 

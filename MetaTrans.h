@@ -183,7 +183,7 @@ namespace MetaTrans {
 
             InstMetaData metaData;
 
-            std::set<int> colors;
+            std::set<ColorData> colors; // color, type(0 data computing 1 addressing 3 control flow)
 
         public:
 
@@ -228,9 +228,11 @@ namespace MetaTrans {
 
             bool virtual isMetaPhi();
 
-            void addColor(int c);
+            void addColor(int c, int t);
 
-            std::set<int>& getColors();
+            std::set<ColorData>& getColors();
+
+            bool hasColor(int c);
 
     };
 

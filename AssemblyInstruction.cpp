@@ -738,9 +738,14 @@ void AssemblyInstruction::setEpilogue(){ Epilogue = true; }
 string AssemblyInstruction::getMnemonic(){return this->Mnemonic;}
 
 
-set<int>& AssemblyInstruction::getColors() {return this->colors;}
-void AssemblyInstruction::addColor(int c) {this->colors.insert(c);}
-bool AssemblyInstruction::hasColor(int c) {return this->colors.count(c) != 0;}
+set<pair<int, int>>& AssemblyInstruction::getColors() {return this->colors;}
+void AssemblyInstruction::addColor(int color, int type) {this->colors.insert({color, type});}
+bool AssemblyInstruction::hasColor(int c) {
+  for (auto const &p: colors) {
+    if (c == p.first)  return true;
+  }
+  return false;
+}
 
 
 
