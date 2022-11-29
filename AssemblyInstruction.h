@@ -89,7 +89,7 @@ private:
   //  LocalEdge[2]:RS2
   //  LocalEdge[3]:RS3
   vector<AssemblyInstruction*> LocalEdge = vector<AssemblyInstruction*>(4);
-  set<int> colors;
+  set<pair<int, int>> colors; // color, type(0 data computing 1 addressing 3 control flow)
 
 
 
@@ -207,8 +207,8 @@ public:
   void printArrays();
   void printEdges();
 
-  set<int>& getColors();
-  void addColor(int c);
+  set<pair<int, int>>& getColors();
+  void addColor(int c, int t);
   bool hasColor(int c);
 
 
