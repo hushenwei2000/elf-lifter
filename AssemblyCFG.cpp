@@ -423,6 +423,7 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
   AssemblyInstruction*            ret     =     NULL;
   GlobalData*                     G       =     NULL;
   int                             i       =     0;
+  string                          name;
 
 
   //cout << "\tDEBUG::FindDataSource():: Found instruction " << inst->getMnemonic()
@@ -433,10 +434,21 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
     inst->setDataRoot("RISCV_SP");
     return inst;
   }
+  else if(inst->getMnemonic() == "jal" && inst->getRd() == 10){
+    // cout << "\tDEBUG::FindDataSource():: Found JAL !\n";
+    
+    //name = MatchPLTFunction(inst->getImm());
+    if(inst->getCallTarget()){
+      name = inst->getCallTarget()->getName();
+      inst->setDataRoot(name);
+      return inst;
+    }
+
+  }
   // addi rd, gp, imm
   else if(inst->getMnemonic() == "addi" && inst->getRs1() == 3 && inst->getRd() != 3){
-    cout << "\tDEBUG::FindDataSource():: Found addi " << std::dec << inst->getRd()
-         << ", gp, " << std::dec << inst->getImm() << endl;
+    // cout << "\tDEBUG::FindDataSource():: Found addi " << std::dec << inst->getRd()
+    //      << ", gp, " << std::dec << inst->getImm() << endl;
 
     G = ComputeGlobalAddr(inst);
     if(G){
@@ -490,7 +502,7 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
 
 void AssemblyCFG::ProcessFuncCall(){
 
-  cout << "\tEntering ProcessFuncCall()\n";
+  //cout << "\tEntering ProcessFuncCall()\n";
   
   int                   CallFlag   =    0;
   AssemblyInstruction*  Call       =    NULL;
@@ -507,7 +519,16 @@ void AssemblyCFG::ProcessFuncCall(){
             CallFlag = 0;
             for(int i = RS1; i<=RS3; i++){
               if((*it)->getRs(i) == 10 ||  (*it)->getRs(i) == 42)
-                  (*it)->setRd(Call->getRs(i));
+                  // cout << "\t Debug:: ProcessFuncCall():: Returned Inst "
+                  //      << (*it)->getMnemonic() << ", Rs[" << i << "] = "
+                  //      << (*it)->getRs(i) << "\n";
+
+                  Call->setRd((*it)->getRs(i));
+
+                  // cout << "\t Debug:: ProcessFuncCall():: Set Inst "
+                  //      << Call->getMnemonic() << ", Rd = "
+                  //      << Call->getRd() << "\n";
+
                   Call = NULL;
                   break;
             }
@@ -519,14 +540,14 @@ void AssemblyCFG::ProcessFuncCall(){
           if(ISA_type >=3 && (*it)->getMnemonic() == "jal"){
             CallFlag  =  1;
             Call = (*it);
-            cout << "\t Debug::\t Processing Function Call "
-                 << (*it)->getMnemonic() << "\n";
+            // cout << "\t Debug::\t Processing Function Call "
+            //      << (*it)->getMnemonic() << "\n";
           }
         } 
     }
   }
 
-  cout << "\tLeavinging ProcessFuncCall()\n";
+  // cout << "\tLeavinging ProcessFuncCall()\n";
 
 
 }
