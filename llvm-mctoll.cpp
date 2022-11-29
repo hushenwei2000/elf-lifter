@@ -156,7 +156,7 @@ std::vector<std::pair<string, uint64_t>> PLTFunctions;
 
 
 // GP init value for RISC-V
-uint64_t  GP_BASE = 0;
+int64_t  GP_BASE = 0;
 
 
 
@@ -1782,6 +1782,13 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
               (*i)->BuildPhiNodes();
           }
           printf("Phi Node Building for All BB Completes!");
+         
+        
+          //ass_CFG->ProcessRISCVGP();
+
+          
+          //ass_CFG->TraverseLoadStore();
+
 
           ass_CFG->FindPrologue();
           ass_CFG->FindRet();
@@ -2200,12 +2207,12 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
       printf("Phi Node Building for All BB Completes!\n\n");
       
 
-      if(ISA_type>=3)
-        ass_CFG->ProcessRISCVGP();
+      //  if(ISA_type>=3)
+      //    ass_CFG->ProcessRISCVGP();
 
       ass_CFG->FindPrologue();
       ass_CFG->FindRet();
-      ass_CFG->TraverseLoadStore();
+      //ass_CFG->TraverseLoadStore();
       //ass_CFG->FindEpilogue();
       printf("Global Data Dump:\n");
 
