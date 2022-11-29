@@ -329,6 +329,8 @@ namespace MetaTrans {
 
             int getInstNum();
 
+            std::string toString();
+
             std::vector<MetaInst*>::iterator inst_begin();
 
             std::vector<MetaInst*>::iterator inst_end();

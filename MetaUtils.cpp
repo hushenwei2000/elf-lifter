@@ -167,7 +167,7 @@ namespace MetaTrans {
         if (type.size() == 0) return "[]";
 
         std::string str = "[";
-        for (InstType t : type) { str = str + MetaUtil::toString(t) + ","; }
+        for (InstType t : type) { str = str + "\"" + MetaUtil::toString(t) + "\"" + ","; }
         str[str.length() - 1] = ']';
 
         return str;

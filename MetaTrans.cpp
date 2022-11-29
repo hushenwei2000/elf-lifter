@@ -274,11 +274,24 @@ namespace MetaTrans {
     bool MetaPhi::isMetaPhi() { return true; }
 
     std::string MetaPhi::toString() {
+
         std::string opList = operandList.size() == 0 ? "[]" : "[";
         for (MetaOperand* oprand : operandList) { opList = opList + std::to_string(oprand->getID()) + ","; }
         opList[opList.length() - 1] = ']';
+        
+        std::string phiMapStr = bbValueMap.size() == 0 ? "{}" : "[";
+        for (auto pair = bbValueMap.begin(); pair != bbValueMap.end(); ++pair) {
+            phiMapStr = phiMapStr + "\"" + std::to_string(pair->first->getID()) + "\":" + std::to_string(pair->second->getID());
+        }
+        phiMapStr[phiMapStr.length() - 1] = ']'; 
+
         std::string str = "";
-        return str + "{" + "\"id\":" + std::to_string(id) + ",\"isMetaPhi\":true,\"type\":" + MetaUtil::toString(type) + "," + "\"operandList\":" + opList + "}";
+        return str + 
+            "{" + "\"id\":" + std::to_string(id) + 
+            ",\"isMetaPhi\":true,\"type\":" + MetaUtil::toString(type) + 
+            ",\"operandList\":" + opList + 
+            ",\"bbValueMap\":" + phiMapStr +
+            "}";
     }
 
 
@@ -370,6 +383,24 @@ namespace MetaTrans {
     std::vector<MetaInst*>::iterator MetaBB::inst_begin() { return instList.begin(); }
 
     std::vector<MetaInst*>::iterator MetaBB::inst_end() { return instList.end(); }
+
+    std::string MetaBB::toString() {
+
+        std::string instListStr = instList.empty() ? "[]" : "[";
+        for (MetaInst* inst : instList) instListStr = instListStr + inst->toString() + ",";
+        instListStr[instListStr.length() - 1] = ']';
+
+        std::string sucStr = successors.empty() ? "[]" : "[";
+        for (MetaBB* suc : successors) sucStr = sucStr + std::to_string(suc->getID()) + ",";
+        sucStr[sucStr.length() - 1] = ']'; 
+
+        std::string bbStr = "";
+
+        return bbStr + "{"
+            "\"instList\":" + instListStr + "," +
+            "\"successors\":" + sucStr + 
+            "}";
+    }
 
 //===-------------------------------------------------------------------------------===//
 /// Meta Function implementation.

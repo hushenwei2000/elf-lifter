@@ -171,7 +171,7 @@ std::string MatchPLTFunction(uint64_t addr){
 }
 
 
-
+static void DumpTIR();
 
 
 GlobalData* MatchGlobalData(uint64_t addr){
@@ -2291,8 +2291,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
       cout << msg << endl;
     }
 
-    DumpASM2TIR();
-    DumpIR2TIR();
+    DumpTIR();
 
     assInstrsOfFunction.clear();
 
