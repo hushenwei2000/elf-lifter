@@ -1389,6 +1389,14 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
   int times = 0;
   int globalColor = 0;
   int globalTIRColor = 0;
+
+
+
+  unsigned  start   = 0;
+  int       found   = 0;
+  int       fun     = -1;
+
+
   for (const SectionRef &Section : ToolSectionFilter(*Obj)) {
     
     times++;
@@ -1533,9 +1541,6 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
 
     if(ISA_type >=3){
 
-    unsigned  start   = 0;
-    int       found   = 0;
-    int       fun     = -1;
     for ( start = 0; start != Symbols.size(); start++) {
         if(Symbols[start].Name.str()== ".text" && fun == -1)
             fun = start+1;
@@ -1547,12 +1552,12 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
     }
 
 
-    if(found){
-      std::cout << "\tDEBUG:: _start function symbol index in .text is " << start << endl;
-      std::cout << "\tDEBUG:: function symbol index in .text starts from " << fun << endl;
-      std::cout << "\tDEBUG:: The first function symbol is " << Symbols[fun].Name.str() << endl;
+    // if(found){
+    //   std::cout << "\tDEBUG:: _start function symbol index in .text is " << start << endl;
+    //   std::cout << "\tDEBUG:: function symbol index in .text starts from " << fun << endl;
+    //   std::cout << "\tDEBUG:: The first function symbol is " << Symbols[fun].Name.str() << endl;
 
-    }
+    // }
 
     
     if(found && start){
@@ -1844,10 +1849,13 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
           printf("Phi Node Building for All BB Completes!");
          
         
-          ass_CFG->ProcessRISCVGP();
+          if(found){
+            ass_CFG->ProcessRISCVGP();
+            found = 0;
+          }
 
           
-          //ass_CFG->TraverseLoadStore();
+          ass_CFG->TraverseLoadStore();
 
 
           ass_CFG->FindPrologue();
@@ -2272,7 +2280,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
 
       ass_CFG->FindPrologue();
       ass_CFG->FindRet();
-      //ass_CFG->TraverseLoadStore();
+      ass_CFG->TraverseLoadStore();
       //ass_CFG->FindEpilogue();
       printf("Global Data Dump:\n");
 

@@ -317,7 +317,7 @@ int AssemblyCFG::FindRet(){
 
 void AssemblyCFG::TraverseLoadStore(){
 
-  cout << "\tDEBUG:: Entering TraverseLoadStore()\n";
+  //cout << "\tDEBUG:: Entering TraverseLoadStore()\n";
   AssemblyInstruction* inst;
 
   for (vector<AssemblyBasicBlock*>::iterator it = this->BasicBlocks.begin();
@@ -326,7 +326,7 @@ void AssemblyCFG::TraverseLoadStore(){
 
     for (auto it = instrs.begin(); it != instrs.end(); it++) {
         if((*it)->IsLoad() || (*it)->IsStore()){
-          cout<< "DEBUG::  TraverseLoadStore() Found Load/Store instructions\n";
+          //cout<< "DEBUG::  TraverseLoadStore() Found Load/Store instructions\n";
 
           if((*it)->getRs1() == 2)
               (*it)->setDataRoot("RISCV_SP");
@@ -337,9 +337,16 @@ void AssemblyCFG::TraverseLoadStore(){
           else{  
             inst = FindDataSource(*it);
             if(inst){
+       
               (*it)->setDataRoot(inst->getDataRoot());
               if((*it)->getDataRoot() == "RISCV_GLOBAL")
                 (*it)->setGlobalData(inst->getGlobalData());
+
+              //  cout  << "\tDEBUG::TraverseLoadStore()::  Inst: " << (*it)->getMnemonic() 
+              //        << ", Address: 0x" << std::hex << (*it)->getAddress() 
+              //        << ", Data Root: "
+              //        << (*it)->getDataRoot() << endl;
+             
             }
           }
         }
@@ -350,14 +357,14 @@ void AssemblyCFG::TraverseLoadStore(){
 
 GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* inst){
 
-    cout << "DEBUG:: Entering ComputeGlobalAddr()\n";
+    //cout << "DEBUG:: Entering ComputeGlobalAddr()\n";
 
     GlobalData* G = NULL;
     int64_t addr; 
 
     if(inst->getMnemonic()== "addi"){
       addr = GP_BASE + inst->getImm();
-      printf ("\tDEBUG:: ComputeGlobalAddr:: Addr  = %d\n", addr );
+      //printf ("\tDEBUG:: ComputeGlobalAddr:: Addr  = %d\n", addr );
     }
     else{
     
@@ -401,7 +408,7 @@ GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* inst){
     if(G)
       cout <<"\tDEBUG:: MatchGlobalData: "<< G->name << endl;
 
-    cout << "DEBUG:: Exiting ComputeGlobalAddr()\n";
+    //cout << "DEBUG:: Exiting ComputeGlobalAddr()\n";
 
     return G;
  
@@ -411,26 +418,37 @@ GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* inst){
 
 AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
 
-  cout << "DEBUG:: Entering FindDataSource()\n";
+  //cout << "DEBUG:: Entering FindDataSource()\n";
 
   AssemblyInstruction*            ret     =     NULL;
   GlobalData*                     G       =     NULL;
   int                             i       =     0;
+  string                          name;
 
 
-  cout << "\tDEBUG::FindDataSource():: Found instruction " << inst->getMnemonic()
-         << "\t ,Addr = 0x" << std::hex<< inst->getAddress() << endl;
+  //cout << "\tDEBUG::FindDataSource():: Found instruction " << inst->getMnemonic()
+  //       << "\t ,Addr = 0x" << std::hex<< inst->getAddress() << endl;
 
   // Check if the address points to stack SP
   if(inst->getRd() == 2){
     inst->setDataRoot("RISCV_SP");
     return inst;
   }
+  else if(inst->getMnemonic() == "jal" && inst->getRd() == 10){
+    // cout << "\tDEBUG::FindDataSource():: Found JAL !\n";
+    
+    //name = MatchPLTFunction(inst->getImm());
+    if(inst->getCallTarget()){
+      name = inst->getCallTarget()->getName();
+      inst->setDataRoot(name);
+      return inst;
+    }
+
+  }
   // addi rd, gp, imm
   else if(inst->getMnemonic() == "addi" && inst->getRs1() == 3 && inst->getRd() != 3){
-    cout << "\tDEBUG::FindDataSource():: Found addi " << std::dec << inst->getRd()
-         << ", gp, 0x" << std::dec << inst->getImm() << endl;
-    printf("\t Imm: %d\n", inst->getImm());
+    // cout << "\tDEBUG::FindDataSource():: Found addi " << std::dec << inst->getRd()
+    //      << ", gp, " << std::dec << inst->getImm() << endl;
 
     G = ComputeGlobalAddr(inst);
     if(G){
@@ -484,7 +502,7 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
 
 void AssemblyCFG::ProcessFuncCall(){
 
-  cout << "\tEntering ProcessFuncCall()\n";
+  //cout << "\tEntering ProcessFuncCall()\n";
   
   int                   CallFlag   =    0;
   AssemblyInstruction*  Call       =    NULL;
@@ -501,7 +519,16 @@ void AssemblyCFG::ProcessFuncCall(){
             CallFlag = 0;
             for(int i = RS1; i<=RS3; i++){
               if((*it)->getRs(i) == 10 ||  (*it)->getRs(i) == 42)
-                  (*it)->setRd(Call->getRs(i));
+                  // cout << "\t Debug:: ProcessFuncCall():: Returned Inst "
+                  //      << (*it)->getMnemonic() << ", Rs[" << i << "] = "
+                  //      << (*it)->getRs(i) << "\n";
+
+                  Call->setRd((*it)->getRs(i));
+
+                  // cout << "\t Debug:: ProcessFuncCall():: Set Inst "
+                  //      << Call->getMnemonic() << ", Rd = "
+                  //      << Call->getRd() << "\n";
+
                   Call = NULL;
                   break;
             }
@@ -513,14 +540,14 @@ void AssemblyCFG::ProcessFuncCall(){
           if(ISA_type >=3 && (*it)->getMnemonic() == "jal"){
             CallFlag  =  1;
             Call = (*it);
-            cout << "\t Debug::\t Processing Function Call "
-                 << (*it)->getMnemonic() << "\n";
+            // cout << "\t Debug::\t Processing Function Call "
+            //      << (*it)->getMnemonic() << "\n";
           }
         } 
     }
   }
 
-  cout << "\tLeavinging ProcessFuncCall()\n";
+  // cout << "\tLeavinging ProcessFuncCall()\n";
 
 
 }
@@ -530,11 +557,11 @@ void AssemblyCFG::ProcessRISCVGP(){
 
   uint64_t addr = 0;
 
-  cout << "\tDEBUG:: ProcessRISCVGP():: Function Name is " 
-       << this->getFunction().getName() << endl;
+  // cout << "\tDEBUG:: ProcessRISCVGP():: Function Name is " 
+  //      << this->getFunction().getName() << endl;
        
   if(this->getFunction().getName() == "_start"){
-     cout << "\tDEBUG:: ProcessRISCVGP():: Entering _start\n "; 
+     //cout << "\tDEBUG:: ProcessRISCVGP():: Entering _start\n "; 
 
     for (vector<AssemblyBasicBlock*>::iterator it = this->BasicBlocks.begin();
         it != this->BasicBlocks.end(); it++) {
