@@ -254,6 +254,7 @@ int AssemblyBasicBlock::PaintColor(int StartColor){
   // 1. From bottom `store` data path to first `load` or `phi`
   // 2. From bottom `store` address path to first `load` or `phi`
   // 3. From bottom `branch` to first `load` or `phi`
+  string t = "";
   // First step: Collect every store and branch
   std::vector<AssemblyInstruction*>* InstVec = this->getInstructions();
   for(int i = InstVec->size()-1; i >= 0; i--){
@@ -261,28 +262,32 @@ int AssemblyBasicBlock::PaintColor(int StartColor){
       cout << "IsStore" << endl;
       // int32_t addressReg = (*InstVec)[i]->Reg[1];
       // int32_t dataReg = (*InstVec)[i]->Reg[2];
-      paintInsColorRecursive((*InstVec)[i], 1, StartColor, 0); // addressReg in LocalEdge[1/RS1]
+      printf("Color: %d, Type: Addressing\n", StartColor);
+      paintInsColorRecursive((*InstVec)[i], 1, StartColor, 1, 0); // addressReg in LocalEdge[1/RS1]
       StartColor++;
-      paintInsColorRecursive((*InstVec)[i], 2, StartColor, 0); // dataReg in LocalEdge[2/RS2]
+      printf("Color: %d, Type: Data Compute\n", StartColor);
+      paintInsColorRecursive((*InstVec)[i], 2, StartColor, 0, 0); // dataReg in LocalEdge[2/RS2]
       StartColor++;
     }else if((*InstVec)[i]->getIsBranch()){
       cout << "IsSBranch" << endl;
-      paintInsColorRecursive((*InstVec)[i], 2, StartColor, 0);
+      printf("Color: %d, Type: Control Flow\n", StartColor);
+      paintInsColorRecursive((*InstVec)[i], 2, StartColor, 2, 0);
       StartColor++;
-      paintInsColorRecursive((*InstVec)[i], 1, StartColor, 0);
+      printf("Color: %d, Type: Control Flow\n", StartColor);
+      paintInsColorRecursive((*InstVec)[i], 1, StartColor, 2, 0);
       StartColor++;
     }
   }
   return StartColor;
 }
 
-void AssemblyBasicBlock::paintInsColorRecursive(AssemblyInstruction* ins, int tracedReg, int color, int depth) {
-  ins->addColor(color);
+void AssemblyBasicBlock::paintInsColorRecursive(AssemblyInstruction* ins, int tracedReg, int color, int type, int depth) {
+  ins->addColor(color, type);
   for(int i = 0; i < depth; i++) {cout << "  ";}
   printf("%x(%d) %s ->\n", ins->getAddress(), color, ins->getFullMnemonic().c_str());
   if(!ins->IsLoad() && ins->getLocalEdge(tracedReg) != NULL) { // Paint until `load` or `phi` or no upstream instruction
-    paintInsColorRecursive(ins->getLocalEdge(tracedReg), 1, color, depth + 1); // search rs1 and rs2
-    paintInsColorRecursive(ins->getLocalEdge(tracedReg), 2, color, depth + 1);
+    paintInsColorRecursive(ins->getLocalEdge(tracedReg), 1, color, type, depth + 1); // search rs1 and rs2
+    paintInsColorRecursive(ins->getLocalEdge(tracedReg), 2, color, type, depth + 1);
   }else {
     return;
   }

@@ -10,6 +10,7 @@
 using namespace llvm;
 
 namespace MetaTrans {
+    static std::vector<std::string> InstTypeName = {"LOAD", "STORE", "COMPARE", "CALL", "BRANCH", "JUMP", "PHI", "ADD", "SUB", "MUL", "DIV", "REMAINDER", "AND", "OR", "XOR", "SHIFT", "NEG", "RET", "ALLOCATION", "ADDRESSING", "EXCEPTION", "SWAP", "MIN", "MAX", "SQRT", "FENCE", "CONVERT", "HINT"};
 
     class YamlUtil {
         protected:
@@ -123,7 +124,15 @@ namespace MetaTrans {
                 if (pair != map.end()) return nullptr;
                 return map[key] = new V();
             }
+            
+            static void paintInsColorRecursive(MetaInst* inst, int color, int type, int depth);
+
+            static void paintColor(MetaFunction* mF, int startColor);
+
         
     };
+
+
+
 }
 

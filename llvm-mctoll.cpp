@@ -2461,13 +2461,16 @@ static void DumpInput(StringRef file) {
 static MetaTrans::MetaAsmBuilder builder;
 
 static void DumpTIR() {
+  int glbcolor = 0;
   std::cout << "\n//==-------------------- START DUMP TIR --------------------==//" << "\n";
-  for (AssemblyCFG* cfg : cfgs)
+  for (AssemblyCFG* cfg : cfgs) {
     MetaTrans::MetaFunction* mF = builder
                                     .setAsmCFG(cfg)
                                     .setTypeMap(MetaTrans::YamlUtil::parseAsmMapConfig("asm.yml"))
                                     .build()
                                     ;
+    MetaTrans::MetaUtil::paintColor(mF, glbcolor++);
+  }
   std::cout << "\n//==--------------------  END DUMP TIR  --------------------==//" << "\n\n";
 }
 
