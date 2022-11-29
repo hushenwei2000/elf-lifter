@@ -213,12 +213,11 @@ namespace MetaTrans {
     bool MetaInst::isMetaPhi() { return false; }
 
     std::string MetaInst::toString() {
-        std::string opList = "[";
+        std::string opList = operandList.size() == 0 ? "[]" : "[";
         for (MetaOperand* oprand : operandList) { opList = opList + std::to_string(oprand->getID()) + ","; }
-        if (operandList.size() == 0) opList = "null";
-        else opList[opList.length() - 1] = ']';
+        opList[opList.length() - 1] = ']';
         std::string str = "";
-        return str + "{" + "\"id\":" + std::to_string(id) + ",\"type\":" + MetaUtil::toString(type) + "," + "\"operandList\":" + opList + "}";
+        return str + "{" + "\"id\":" + std::to_string(id) + ",\"isMetaPhi\":false,\"type\":" + MetaUtil::toString(type) + "," + "\"operandList\":" + opList + "}";
     }
 
     void MetaInst::addColor(int c) { colors.insert(c); }
@@ -267,6 +266,15 @@ namespace MetaTrans {
     }
 
     bool MetaPhi::isMetaPhi() { return true; }
+
+    std::string MetaPhi::toString() {
+        std::string opList = operandList.size() == 0 ? "[]" : "[";
+        for (MetaOperand* oprand : operandList) { opList = opList + std::to_string(oprand->getID()) + ","; }
+        opList[opList.length() - 1] = ']';
+        std::string str = "";
+        return str + "{" + "\"id\":" + std::to_string(id) + ",\"isMetaPhi\":true,\"type\":" + MetaUtil::toString(type) + "," + "\"operandList\":" + opList + "}";
+    }
+
 
 //===-------------------------------------------------------------------------------===//
 /// Meta Basic Block implementation.

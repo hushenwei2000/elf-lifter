@@ -164,7 +164,7 @@ namespace MetaTrans {
     }
 
     std::string MetaUtil::toString(std::vector<InstType> type) {
-        if (type.size() == 0) return "null";
+        if (type.size() == 0) return "[]";
 
         std::string str = "[";
         for (InstType t : type) { str = str + MetaUtil::toString(t) + ","; }

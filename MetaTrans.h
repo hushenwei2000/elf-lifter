@@ -260,6 +260,8 @@ namespace MetaTrans {
             std::unordered_map<MetaBB*, MetaOperand*>::iterator end();
 
             bool virtual isMetaPhi() override;
+
+            std::string virtual toString() override;
     };
 
     class MetaBB {
