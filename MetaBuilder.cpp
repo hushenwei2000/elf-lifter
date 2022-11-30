@@ -203,9 +203,9 @@ namespace MetaTrans{
         std::cout << " ]" << std::endl;
 
         std::cout << "\n\n>>== Printing TIR info of function at: " << mF << " ==<<" << "\n";
+        std::cout << mF->toString() << std::endl;
         for_each(mF->bb_begin(), mF->bb_end(), [&] (MetaBB* bb) {
             std::cout << "-- Memory address of Meta BB: " << bb << " --" << "\n";
-            std::cout << bb->toString() << std::endl;
             for_each(bb->inst_begin(), bb->inst_end(), [&] (MetaInst* inst) { 
                 if (!inst->isMetaPhi()) {
                     std::cout << "Meta instruction address: " << inst << " " << "\n";

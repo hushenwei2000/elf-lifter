@@ -56,12 +56,32 @@ namespace MetaTrans {
     }
 
     void AsmBBFilter::doFilter(FilterTarget& target, FilterChain& chain) {
+        MetaAsmBuilder&                             builder     =   dynamic_cast<MetaAsmBuilder&>(target);
+        MetaFunction&                               metaFunc    =   *(builder.mF);
+        for (auto bb_iter = metaFunc.begin(); bb_iter != metaFunc.end(); ++bb_iter) {
+            vector<MetaInst*>& instList = (**bb_iter).getInstList();
+            auto inst_iter = instList.begin();
+            while (inst_iter != instList.end() && (**inst_iter).isMetaPhi()) ++inst_iter;
+            if (inst_iter == instList.end()) continue;
+            (**bb_iter)
+                    .setEntry(*inst_iter)
+                    .setTerminator(instList[instList.size() - 1])
+                    ;
+        }
 
         chain.doFilter(target);
 
     }
 
     void AsmFuncFilter::doFilter(FilterTarget& target, FilterChain& chain) {
+        MetaAsmBuilder&                             builder     =   dynamic_cast<MetaAsmBuilder&>(target);
+        AssemblyCFG&                                cfg         =   *(builder.cfg);
+        MetaFunction&                               metaFunc    =   *(builder.mF);
+        metaFunc
+            .setRoot(builder.bbMap[cfg.getBasicBlocks()[0]->hashCode()])
+            .setFunctionName(cfg.getName())
+            .setReturnType(DataType::INT)   // 暂时先设置为int
+            ;
 
         chain.doFilter(target);
 

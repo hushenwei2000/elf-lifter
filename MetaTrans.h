@@ -331,6 +331,10 @@ namespace MetaTrans {
 
             std::string toString();
 
+            std::vector<MetaInst*>::iterator begin();
+
+            std::vector<MetaInst*>::iterator end();
+
             std::vector<MetaInst*>::iterator inst_begin();
 
             std::vector<MetaInst*>::iterator inst_end();
@@ -389,6 +393,8 @@ namespace MetaTrans {
 
             // create a new bb at the end of bb list.
             MetaBB* buildBB();
+
+            std::string toString();
 
             std::vector<MetaBB*>::iterator begin();
 
