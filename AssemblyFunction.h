@@ -50,6 +50,7 @@ public:
   void dump();
   void setReturn(int width);
   bool hasReturn();
+  void setReturnWidth(int width);
   int getReturnWidth();
   int getReturnType();
   void setReturnType(int PtrOrData);

@@ -451,6 +451,8 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
     //name = MatchPLTFunction(inst->getImm());
     if(inst->getCallTarget()){
       inst->getCallTarget()->setReturnType(IsAddr);
+      // All the addresses data width is 64 bit
+      inst->getCallTarget()->setReturnWidth(64);
       name = inst->getCallTarget()->getName();
       inst->setDataRoot(name);
       return inst;

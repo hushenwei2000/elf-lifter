@@ -185,6 +185,10 @@ void AssemblyFunction::setReturnType(int PtrOrData){
 }
 
 
+void AssemblyFunction::setReturnWidth(int width){
+   this->ReturnWidth = width;
+}
+
 int AssemblyFunction::getReturnWidth(){
   return this->ReturnWidth;
 }
