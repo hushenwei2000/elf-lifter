@@ -53,7 +53,7 @@ public:
   AssemblyCFG(AssemblyFunction* fuction, uint64_t start_address, int start_offset, uint64_t end_address);
   int addBasicBlock(AssemblyBasicBlock* ass_bb);
   void AddFunction();
-  AssemblyFunction& getFunction();
+  AssemblyFunction* getFunction();
 
   int getSize() const;
   string getName() const;

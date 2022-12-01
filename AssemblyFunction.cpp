@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <cxxabi.h>
 #include <functional>
+#include <macro.h>
 
 using namespace std;
 
@@ -24,6 +25,8 @@ AssemblyFunction::AssemblyFunction(string function_name, uint64_t start_address,
   startAddress  = start_address;
   endAddress    = end_address;
   ArgumentNum   = 0;
+  ReturnWidth   = 0;
+  ReturnType    = 0;
 
   Argument.clear();
   HasReturn = false;
@@ -143,8 +146,19 @@ void AssemblyFunction::dump(){
         else
             cout << ", IsPointer\n";
     }
-    if(HasReturn)
-      cout << "\tReturn Type = " << ReturnType << "\n"; 
+    if(HasReturn){
+      cout << "\tReturn Type = ";
+      if(ReturnType == IsAddr)
+        cout << "Pointer;";
+      else if(ReturnType == IsData)
+        cout << "Data;";
+      else 
+        cout << "Invalid Return Type!!!";
+        
+      cout << "\tReturn Width = " << ReturnWidth <<endl;
+
+
+    }
 
 }
 
@@ -162,7 +176,21 @@ bool AssemblyFunction::hasReturn(){
 
 void  AssemblyFunction::setReturn(int width){
   HasReturn = true;
-  ReturnType = width;
+  ReturnWidth = width;
+}
+
+void AssemblyFunction::setReturnType(int PtrOrData){
+
+  ReturnType = PtrOrData;
+}
+
+
+int AssemblyFunction::getReturnWidth(){
+  return this->ReturnWidth;
+}
+
+int AssemblyFunction::getReturnType(){
+  return this->ReturnType;
 }
 
 

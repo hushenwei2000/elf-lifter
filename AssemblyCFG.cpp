@@ -51,7 +51,7 @@ int AssemblyCFG::getSize() const { return this->Size; }
 
 string AssemblyCFG::getName() const { return this->FunctionName; }
 
-AssemblyFunction& AssemblyCFG::getFunction(){return *(this->Function);}
+AssemblyFunction* AssemblyCFG::getFunction(){return this->Function;}
 
 // void AssemblyCFG::AddFunction(){
 //     this->Function(this->function_name, uint64_t start_address, uint64_t end_address)
@@ -296,17 +296,28 @@ int AssemblyCFG::FindEpilogue(){
 int AssemblyCFG::FindRet(){
 
 
-  auto  InstVec = (*(this->BasicBlocks.rbegin()))->getInstructions();
+  //auto  InstVec = (*(this->BasicBlocks.rbegin()))->getInstructions();
   int   size    = 0;
 
   vector<AssemblyInstruction*>::reverse_iterator it;
-  for(it = InstVec->rbegin(); it!= InstVec->rend();it++){
+
+  // Go through all the BBs of current Function, in case there are branches before
+  // the return value assignment to a0 or fa0, leading to return value assignment not in last BB.
+  for(auto bb = this->BasicBlocks.rbegin(); bb!=this->BasicBlocks.rend(); bb++){
+    auto InstVec = (*bb)->getInstructions();
+    for(it = InstVec->rbegin(); it!= InstVec->rend();it++){
         // rd = a0 or fa0
         if((*it)->getRd() == 10 || (*it)->getRd() == 42 ){
-            this->getFunction().setReturn((*it)->getDataWidth(RD)); 
+            this->getFunction()->setReturn((*it)->getDataWidth(RD)); 
+            // We set the return type to data by default.
+            // The addressing analysis in TraverseLoadStore will reset 
+            // return type to IsAddr if the function returns a pointer
+            if(this->getFunction()->getReturnType() == 0)
+              this->getFunction()->setReturnType(IsData);
             return 1;
         } 
 
+    }
   }
 
   return 0;
@@ -439,6 +450,7 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
     
     //name = MatchPLTFunction(inst->getImm());
     if(inst->getCallTarget()){
+      inst->getCallTarget()->setReturnType(IsAddr);
       name = inst->getCallTarget()->getName();
       inst->setDataRoot(name);
       return inst;
@@ -560,7 +572,7 @@ void AssemblyCFG::ProcessRISCVGP(){
   // cout << "\tDEBUG:: ProcessRISCVGP():: Function Name is " 
   //      << this->getFunction().getName() << endl;
        
-  if(this->getFunction().getName() == "_start"){
+  if(this->getFunction()->getName() == "_start"){
      //cout << "\tDEBUG:: ProcessRISCVGP():: Entering _start\n "; 
 
     for (vector<AssemblyBasicBlock*>::iterator it = this->BasicBlocks.begin();

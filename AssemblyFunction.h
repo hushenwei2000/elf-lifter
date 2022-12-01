@@ -25,7 +25,13 @@ private:
   uint64_t endAddress;
   int ArgumentNum;
   bool HasReturn;
+
+  int ReturnWidth;
+
+
+  // IsAddress = 1, IsData = 2
   int ReturnType;
+
   // Pair <Width, Signed/Unsigned+Pointer/Data>
   vector<pair<int,int>>Argument;
 
@@ -44,7 +50,10 @@ public:
   void dump();
   void setReturn(int width);
   bool hasReturn();
+  int getReturnWidth();
   int getReturnType();
+  void setReturnType(int PtrOrData);
+
   int getArgumentNum();
   int GetWidth(string str);
   string demangle(string name);
