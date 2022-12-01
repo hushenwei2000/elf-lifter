@@ -54,7 +54,7 @@ namespace MetaTrans {
 
     MetaOperand::~MetaOperand() { }
 
-    std::string MetaOperand::toString() { return "Operand"; }
+    std::string MetaOperand::toString() { return "\"Operand\""; }
 
 //===-------------------------------------------------------------------------------===//
 /// Meta Constant implementation.
@@ -279,11 +279,11 @@ namespace MetaTrans {
         for (MetaOperand* oprand : operandList) { opList = opList + std::to_string(oprand->getID()) + ","; }
         opList[opList.length() - 1] = ']';
         
-        std::string phiMapStr = bbValueMap.size() == 0 ? "{}" : "[";
+        std::string phiMapStr = bbValueMap.size() == 0 ? "{}" : "{";
         for (auto pair = bbValueMap.begin(); pair != bbValueMap.end(); ++pair) {
-            phiMapStr = phiMapStr + "\"" + std::to_string(pair->first->getID()) + "\":" + std::to_string(pair->second->getID());
+            phiMapStr = phiMapStr + "\"" + std::to_string(pair->first->getID()) + "\":" + std::to_string(pair->second->getID()) + ",";
         }
-        phiMapStr[phiMapStr.length() - 1] = ']'; 
+        phiMapStr[phiMapStr.length() - 1] = '}'; 
 
         std::string str = "";
         return str + 
