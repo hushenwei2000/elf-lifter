@@ -437,7 +437,7 @@ void AssemblyInstruction::setCall(uint64_t Target, AssemblyFunction* targetFunc)
 
 uint64_t AssemblyInstruction::getAddress() const { return this->Address; }
 
-uint64_t AssemblyInstruction::getTarget() const { return this->BranchTarget; }
+uint64_t AssemblyInstruction::getTarget() const { return this->BranchTarget; } 
 
 string AssemblyInstruction::getFullMnemonic() const {
   string result = this->Mnemonic;
@@ -733,6 +733,13 @@ int AssemblyInstruction::getBB(){return MyBB; }
 void AssemblyInstruction::setPrologue(){ Prologue = true; }
 
 void AssemblyInstruction::setEpilogue(){ Epilogue = true; }
+
+bool AssemblyInstruction::ifPrologueEpilogue(){
+  if(this->Epilogue || this->Prologue)
+    return true;
+  else 
+    return false;
+}
 
 
 string AssemblyInstruction::getMnemonic(){return this->Mnemonic;}
