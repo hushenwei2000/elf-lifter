@@ -368,7 +368,7 @@ void AssemblyCFG::TraverseLoadStore(){
 
 GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* inst){
 
-    //cout << "DEBUG:: Entering ComputeGlobalAddr()\n";
+    cout << "DEBUG:: Entering ComputeGlobalAddr()\n";
 
     GlobalData* G = NULL;
     int64_t addr; 
@@ -394,7 +394,7 @@ GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* inst){
              << std::hex << lui->getAddress() <<endl; 
         return NULL;
       }
-      else if(IfAdd->getMnemonic()=="addi"){
+      else if(IfAdd->getMnemonic()=="addi" || IfAdd->getMnemonic()=="addiw"){
           cout << "\t DEBUG::ComputeGlobalAddr:: Found ADDI operation after LUI, Imm= 0x"
                << std::hex << IfAdd->getImm(); 
           addr += IfAdd->getImm();
@@ -474,15 +474,15 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
   }
   // Check if the address points to global data
   // COMMNTED Due to the GP instructions used by RISC-V compiler toolchain
-  // else if(inst->getMnemonic() == "lui\t"){
-  //   G = ComputeGlobalAddr(inst);
-  //   if(G){
-  //     inst->setGlobalData(*G);
-  //     inst->setDataRoot("RISCV_GLOBAL");
-  //     return inst;
-  //   }
-  //   return NULL;
-  // }
+  else if(inst->getMnemonic() == "lui"){
+    G = ComputeGlobalAddr(inst);
+    if(G){
+      inst->setGlobalData(*G);
+      inst->setDataRoot("RISCV_GLOBAL");
+      return inst;
+    }
+    return NULL;
+  }
 
 
   for(i = RS1; i<=RS3; i++){
