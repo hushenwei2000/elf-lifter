@@ -295,15 +295,15 @@ void AssemblyBasicBlock::paintInsColorRecursive(AssemblyInstruction* ins, int tr
 
 AssemblyInstruction* AssemblyBasicBlock::FindLocalDef(int32_t reg, std::vector<AssemblyInstruction*>* InstVec, int index){
 
- //printf("FindLocalDef Starts!\n\n");
+ printf("FindLocalDef Starts!\n\n");
 
-  for(int i = index-1; i>0; i--){
+  for(int i = index-1; i>=0; i--){
       if((*InstVec)[i]->getRd() != -1 && (*InstVec)[i]->getRd() == reg){
         //printf("FindLocalDef Done!, reg = %d \n\n", reg);
         return (*InstVec)[i];
       }
   }
-  //printf("FindLocalDef Not Found!\n\n");
+  printf("FindLocalDef Not Found!\n\n");
 
   return NULL;
 }
