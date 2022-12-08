@@ -76,7 +76,11 @@ namespace MetaTrans{
         printf("\n*** Building Graph ... ***\n");
         for_each(cfg->begin(), cfg->end(), [&] (AssemblyBasicBlock* bb) {
             copyBasicBlockDependency(bb);
-            for_each(bb->begin(), bb->end(), [&] (AssemblyInstruction* inst) { copyLocalEdge(inst); });
+            for (auto iter = bb->begin(); iter != bb->end(); ++iter) {
+                if ((*iter)->ifPrologueEpilogue()) continue;
+                copyLocalEdge(*iter);
+
+            }
         });
         for (auto i : crossInsts) copyGlobalEdge(i);
         return *this;
@@ -91,8 +95,10 @@ namespace MetaTrans{
         MetaBB* newBB = mF->buildBB();
         assert(bbMap.insert({b.hashCode(), newBB}).second);
         for (auto i = b.begin(); i != b.end(); ++i) {
+            AssemblyInstruction& inst = **i;
+            if (inst.ifPrologueEpilogue()) continue;
             (*this)
-                .createMetaInst(*(*i), *newBB)
+                .createMetaInst(inst, *newBB)
                 // .createMetaOperand(i)
                 ;
         }
@@ -168,7 +174,7 @@ namespace MetaTrans{
     }
 
     MetaAsmBuilder& MetaAsmBuilder::printAsmInfo() {
-        std::cout << "\n>>== Checking Asm info of: " << cfg << " ==<<" << "\n";
+        std::cout << "\n>>== Checking Asm info of: " << cfg->getName() << " ==<<" << "\n";
         for_each(cfg->begin(), cfg->end(), [&] (AssemblyBasicBlock* bb) {
             for_each(bb->begin(), bb->end(), [&] (AssemblyInstruction* inst) { 
                 std::cout << "instruction hash: " << inst->hashCode() << " " << "; Asm code address: " << hex << inst->getAddress() << "\n";
@@ -191,7 +197,7 @@ namespace MetaTrans{
 
     MetaAsmBuilder& MetaAsmBuilder::printTIRinfo() {
 
-        std::cout << "\n\n<<== Dumping TIR for CFG: " << cfg << " ==>>" << "\n";
+        std::cout << "\n\n<<== Dumping TIR for CFG: " << cfg->getName() << " ==>>" << "\n";
         MetaUtil::printMap(instMap, "++ printing inst map ++");
         MetaUtil::printMap(bbMap, "++ printing bb map ++");
         // MetaUtil::printVector(crossInsts, "++ printing cross insts ++");
