@@ -399,8 +399,8 @@ GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* inst){
                << std::hex << IfAdd->getImm(); 
           addr += IfAdd->getImm();
       }
-      else if(IfAdd->IsLoad()){
-          cout << "\t DEBUG::ComputeGlobalAddr:: Found LOAD operation after LUI, Imm= 0x"
+      else if(IfAdd->IsLoad()||IfAdd->IsStore()){
+          cout << "\t DEBUG::ComputeGlobalAddr:: Found LOAD/STORE operation after LUI, Imm= 0x"
                << std::hex << IfAdd->getImm(); 
           addr += IfAdd->getImm();
       }
