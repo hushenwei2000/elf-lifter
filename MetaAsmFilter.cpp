@@ -30,7 +30,6 @@ namespace MetaTrans {
         //     std::cout << "\n"; 
         // }
         
-        // 填充指令的类型
         printf("\n");
         for (auto bb_iter = cfg.begin(); bb_iter != cfg.end(); ++bb_iter) {
             for (auto inst_iter = (**bb_iter).begin(); inst_iter != (**bb_iter).end(); ++inst_iter) {
@@ -48,7 +47,10 @@ namespace MetaTrans {
 
                 MetaInst* metaInst = builder.instMap[(**inst_iter).hashCode()];
                 vector<InstType> opList = typeMap[mnemonic];
-                metaInst->setInstType(opList);
+                (*metaInst)
+                    .setOriginInst(mnemonic)
+                    .setInstType(opList)
+                    ;
 
             }
         }
@@ -106,14 +108,39 @@ namespace MetaTrans {
 
         for (auto bb_iter = metaFunc.begin(); bb_iter != metaFunc.end(); ++bb_iter) {
             MetaBB& bb = **bb_iter;
-            bb.setID(bb_id++);
             for (auto inst_iter = bb.inst_begin(); inst_iter != bb.inst_end(); ++inst_iter) {
-                (**inst_iter).setID(operand_id++);
+                MetaInst& inst = **inst_iter;
+                inst.setID(operand_id++);
             }
+            bb.setID(bb_id++) ;
         }
 
         chain.doFilter(target);
 
     }
+
+    void MetaFeatureFilter::doFilter(FilterTarget& target, FilterChain& chain) {
+        MetaAsmBuilder&                             builder     =   dynamic_cast<MetaAsmBuilder&>(target);
+        MetaFunction&                               metaFunc    =   *(builder.mF);
+
+        for (auto bb_iter = metaFunc.begin(); bb_iter != metaFunc.end(); ++bb_iter) {
+            MetaBB& bb = **bb_iter;
+            int load_count = 0, store_count = 0;
+            for (auto inst_iter = bb.inst_begin(); inst_iter != bb.inst_end(); ++inst_iter) {
+                MetaInst& inst = **inst_iter;
+                if (inst.isLoad()) load_count++;
+                if (inst.isStore()) store_count++;
+            }
+            
+            bb
+                .addFeature(load_count)
+                .addFeature(store_count)
+                ;
+        }
+
+        chain.doFilter(target);
+
+    }
+
 
 }

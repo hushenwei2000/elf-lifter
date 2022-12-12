@@ -21,6 +21,7 @@ friend class AsmInstFilter;
 friend class AsmBBFilter;
 friend class AsmFuncFilter;
 friend class MetaIDFilter;
+friend class MetaFeatureFilter;
 
 AssemblyCFG*    cfg;
 

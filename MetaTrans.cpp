@@ -1,5 +1,6 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/JSON.h"
+#include <math.h>
 #include "MetaTrans.h"
 #include "MetaUtils.h"
 
@@ -174,6 +175,13 @@ namespace MetaTrans {
 
     bool MetaArgument::isMetaArgument() { return true; }
 
+    std::string MetaArgument::toString() {
+        std::string str = "";
+        return str + "{" 
+            + "\"id\":" + std::to_string(id) +
+            "}";
+    }
+
 //===-------------------------------------------------------------------------------===//
 /// Meta Instruction implementation.
 
@@ -182,6 +190,11 @@ namespace MetaTrans {
     MetaInst::MetaInst(std::vector<InstType> ty) : type(ty) { }
 
     MetaInst::~MetaInst() { }
+
+    MetaInst& MetaInst::setOriginInst(std::string name) {
+        originInst = name;
+        return *this;
+    }
 
     MetaInst& MetaInst::setInstType(std::vector<InstType> ty) {
         type = ty;
@@ -220,6 +233,14 @@ namespace MetaTrans {
         return *this;
     }
 
+    std::string MetaInst::getOriginInst() {
+        return originInst;
+    }
+
+    bool MetaInst::isLoad() { for (auto ty : type) if (ty == InstType::LOAD) return true; return false; }
+
+    bool MetaInst::isStore() { for (auto ty : type) if (ty == InstType::STORE) return true; return false; }
+
     int MetaInst::getOperandNum() { return operandList.size(); }
 
     MetaBB* MetaInst::getParent() { return parent; }
@@ -257,7 +278,11 @@ namespace MetaTrans {
         for (MetaOperand* oprand : operandList) { opList = opList + std::to_string(oprand->getID()) + ","; }
         opList[opList.length() - 1] = ']';
         std::string str = "";
-        return str + "{" + "\"id\":" + std::to_string(id) + ",\"isMetaPhi\":false,\"type\":" + MetaUtil::toString(type) + "," + "\"operandList\":" + opList + "}";
+        return str + "{" + "\"id\":" + std::to_string(id) + 
+            ",\"originInst\":" + "\"" + originInst + "\"" +
+            ",\"isMetaPhi\":false,\"type\":" + MetaUtil::toString(type)
+            + "," + "\"operandList\":" + opList +
+            "}";
     }
 
     void MetaInst::addColor(int c, int t) { colors.insert(ColorData(c,t)); }
@@ -345,6 +370,10 @@ namespace MetaTrans {
         return *this;
     }
 
+    bool MetaPhi::isLoad() { return false; }
+
+    bool MetaPhi::isStore() { return false; }
+
 
 //===-------------------------------------------------------------------------------===//
 /// Meta Basic Block implementation.
@@ -409,6 +438,16 @@ namespace MetaTrans {
         return *this;
     }
 
+    MetaBB& MetaBB::addFeature(int f) {
+        features.push_back(f);
+        int innerProduct = 0;
+        for (int i = 0; i < features.size(); ++i) {
+            innerProduct += features[i];
+        }
+        modular = sqrt(innerProduct * 1.0);
+        return *this;
+    }
+
     MetaBB& MetaBB::setEntry(MetaInst* inst) {
         entry = inst;
         return *this;
@@ -455,12 +494,16 @@ namespace MetaTrans {
         }
 
         (*this)
+            .addFeature(JSON["load"].getAsInteger().getValue())
+            .addFeature(JSON["store"].getAsInteger().getValue())
             .setEntry((MetaInst*)tempOperandMap[JSON["entry"].getAsInteger().getValue()])
             .setTerminator((MetaInst*)tempOperandMap[JSON["terminator"].getAsInteger().getValue()])
             ;
     }
 
     std::vector<MetaBB*> MetaBB::getNextBB() { return successors; }
+
+    std::vector<int> MetaBB::getFeature() { return features; }
 
     MetaBB* MetaBB::getNextBB(int index) { return successors[index]; }
 
@@ -475,6 +518,17 @@ namespace MetaTrans {
     MetaFunction* MetaBB::getParent() { return parent; }
 
     int MetaBB::getID() { return id; }
+
+    double MetaBB::getModular() { return modular; }
+
+    double MetaBB::similarity(MetaBB& bb) {
+        std::vector<int> v = bb.getFeature();
+        int dot = 0;
+        for (int i = 0; i < features.size(); ++i) {
+            dot += v[i] * features[i];
+        }
+        return dot / (bb.getModular() * bb.getModular());
+    }
 
     std::vector<MetaInst*>::iterator MetaBB::begin() { return inst_begin(); }
 
@@ -500,6 +554,8 @@ namespace MetaTrans {
             "\"id\":" + std::to_string(id) + "," +
             "\"entry\":" + (entry == nullptr ? "null" : std::to_string(entry->getID())) + "," +
             "\"terminator\":" + (terminator == nullptr ? "null" : std::to_string(terminator->getID())) + "," +
+            "\"load\":" + std::to_string(features[0]) + "," +
+            "\"store\":" + std::to_string(features[1]) + "," +
             "\"instList\":" + instListStr + "," +
             "\"successors\":" + sucStr + 
             "}";
@@ -508,17 +564,7 @@ namespace MetaTrans {
 //===-------------------------------------------------------------------------------===//
 /// Meta Function implementation.
 
-    MetaFunction::MetaFunction(std::string JSON) {
-        llvm::Expected<json::Value> expect = json::parse(JSON);
-        if (expect.takeError()) {
-            std::cout << "parse function json error!" << "\n";
-            return;
-        }
-
-        // TODO: 构建 constants 和 arguments!
-        // TODO: 为 Instruction 和 constants, arguments 之间构建依赖!
-
-        json::Object& object = *(expect.get().getAsObject());
+    void MetaFunction::init(llvm::json::Object& object) {
         json::Array& blocks =  *(object["basicBlocks"].getAsArray());
         json::Array& arguments = *(object["arguments"].getAsArray());
         json::Array& constants = *(object["constants"].getAsArray());
@@ -578,6 +624,21 @@ namespace MetaTrans {
             .setStackSize(object["stackSize"].getAsInteger().getValue())
             .setReturnType(MetaUtil::stringToDataType(object["returnType"].getAsString().getValue().str()))
             ;
+
+    }
+
+    MetaFunction::MetaFunction(std::string JSON) {
+        llvm::Expected<json::Value> expect = json::parse(JSON);
+        if (expect.takeError()) {
+            std::cout << "parse function json error!" << "\n";
+            return;
+        }
+        json::Object& object = *(expect.get().getAsObject());
+        init(object);
+    }
+
+    MetaFunction::MetaFunction(llvm::json::Object& object) {
+        init(object);
     }
 
     MetaFunction::MetaFunction() : stackSize(0), argNum(0) {

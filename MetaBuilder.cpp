@@ -19,6 +19,7 @@ namespace MetaTrans{
             .addFilter(new AsmInstFilter())
             .addFilter(new AsmBBFilter())
             .addFilter(new AsmFuncFilter())
+            .addFilter(new MetaFeatureFilter())
             ;
     }
 
