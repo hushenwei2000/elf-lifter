@@ -2472,15 +2472,25 @@ static MetaTrans::MetaAsmBuilder builder;
 static void DumpTIR() {
   int glbcolor = 0;
   std::cout << "\n//==-------------------- START DUMP TIR --------------------==//" << "\n";
+  std::vector<MetaTrans::MetaFunction*> funcs;
+
   for (AssemblyCFG* cfg : cfgs) {
+    if (cfg->getName() == "_start") continue;
     MetaTrans::MetaFunction* mF = builder
                                     .setAsmCFG(cfg)
-                                    .setTypeMap(MetaTrans::YamlUtil::parseAsmMapConfig("asm.yml"))
+                                    .setTypeMap(MetaTrans::YamlUtil::parseAsmMapConfig("/opt/BinaryTranslation/test/asm.yml"))
                                     .build()
                                     ;
+    funcs.push_back(mF);
     MetaTrans::MetaUtil::paintColor(mF, glbcolor++);
   }
-  std::cout << "\n//==--------------------  END DUMP TIR  --------------------==//" << "\n\n";
+  std::string str = "[";
+  for (auto func : funcs) {
+    str += func->toString() + ",";
+  }
+  str[str.length() - 1] = ']';
+  MetaTrans::MetaUtil::writeToFile(str, "/opt/BinaryTranslation/test/asm.json");
+  std::cout << "\n//==-------------------- END DUMP TIR --------------------==//" << "\n\n";
 }
 
 int main(int argc, char **argv) {

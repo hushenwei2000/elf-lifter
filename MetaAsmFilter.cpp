@@ -30,9 +30,11 @@ namespace MetaTrans {
         //     std::cout << "\n"; 
         // }
         
+        // 填充指令的类型
         printf("\n");
         for (auto bb_iter = cfg.begin(); bb_iter != cfg.end(); ++bb_iter) {
             for (auto inst_iter = (**bb_iter).begin(); inst_iter != (**bb_iter).end(); ++inst_iter) {
+                if ((*inst_iter)->ifPrologueEpilogue()) continue;
                 cout << "instruction mnemonic: " << (*inst_iter)->getMnemonic() << "\n";
                 string mnemonic = (*inst_iter)->getMnemonic();
 

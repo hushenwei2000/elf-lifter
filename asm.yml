@@ -1,15 +1,15 @@
 LUI:
-  - LOADY
+  - MOV
 LB:
-  - LOADY
+  - LOAD
 LH:
-  - LOADY
+  - LOAD
 LW:
-  - LOADY
+  - LOAD
 LBU: 
-  - LOADY
+  - LOAD
 LHU:
-  - LOADY
+  - LOAD
 SB:
   - STORE
 SH:
