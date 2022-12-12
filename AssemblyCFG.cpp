@@ -173,10 +173,10 @@ int AssemblyCFG::FindPrologue(){
     for(;it != InstVec->end() ; it++){
         // Integer or floating store
         if((*it)->getOpcode() ==  0b0100111 || (*it)->getOpcode() == 0b0100011){
-          if((*it)->getRs1() == 2 && IsSavedReg((*it)->getRd())){
+          if((*it)->getRs1() == 2 && IsSavedReg((*it)->getRs2())){
             //cout << "DEBUG:: FindPrologue():: FOUND Prologue!!!!\n";
 
-            if(FindMatchedEpilogue((*it)->getRd(), size)){
+            if(FindMatchedEpilogue((*it)->getRs2(), size)){
               this->Prologue.push_back(*it);
               (*it)->setPrologue();
             }

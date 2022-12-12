@@ -1740,6 +1740,14 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
               ass_bb->addInstruction(*assInstrsOfFunctionIt);
               assInstrsOfFunctionIt++;
             }
+            if(ass_CFG->getSize() >= 1) {
+              AssemblyBasicBlock *lastBB = ass_CFG->getBasicBlocks().back();
+              if(lastBB->getInstructions()->back()->getOpcode() != 0b1101111) {
+              // if not j instruction: link lastBB and CurrentBB
+                lastBB->addSuccessor(ass_bb);
+                ass_bb->addPredecessor(lastBB);
+              }
+            }
             ass_CFG->addBasicBlock(ass_bb);
           }
           // Process last BB, address range: [branchTargetSet.last ~ branchTargetSet.first + sizeof_assInstrsOfFunction]
@@ -1751,6 +1759,12 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
             while (assInstrsOfFunctionIt != assInstrsOfFunction.end() && (*assInstrsOfFunctionIt)->getAddress() < SectionAddr + ass_bb->getEndAddress()) {
               ass_bb->addInstruction(*assInstrsOfFunctionIt);
               assInstrsOfFunctionIt++;
+            }
+            AssemblyBasicBlock *lastBB = ass_CFG->getBasicBlocks().back();
+            if(lastBB && lastBB->getInstructions()->back()->getOpcode() != 0b1101111) {
+            // if not j instruction: link lastBB and CurrentBB
+              lastBB->addSuccessor(ass_bb);
+              ass_bb->addPredecessor(lastBB);
             }
             ass_CFG->addBasicBlock(ass_bb);
           }
@@ -1786,18 +1800,18 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
                     CFGBBs[curBBIndex]->addSuccessor(CFGBBs[i]);
                     CFGBBs[i]->addPredecessor(CFGBBs[curBBIndex]);
                     // TargetBB and TargetBB-1
-                    // TODO: currently only support RISCV j instruction
-                    // if not j instruction: link CurrentBB and nextBB
-                    if(i > 0 && CFGBBs[i - 1]->getInstructions()->back()->getOpcode() != 0b1101111){
-                      CFGBBs[i - 1]->addSuccessor(CFGBBs[i]);
-                      CFGBBs[i]->addPredecessor(CFGBBs[i - 1]);
-                    }
-                    // if not j instruction: link CurrentBB and nextBB
-                    if(CFGBBs[curBBIndex]->getInstructions()->back()->getOpcode() != 0b1101111 && curBBIndex < CFGBBsSize - 1 && i != curBBIndex + 1) {
-                      cout << "addSuccessor: curBBIndex:" << curBBIndex << " succ: " << (curBBIndex+1) << ", instr_addr: " <<  (*it)->getAddress() << endl;
-                      CFGBBs[curBBIndex]->addSuccessor(CFGBBs[curBBIndex + 1]);
-                      CFGBBs[curBBIndex + 1]->addPredecessor(CFGBBs[curBBIndex]);
-                    }
+                    // // TODO: currently only support RISCV j instruction
+                    // // if not j instruction: link CurrentBB and nextBB
+                    // if(i > 0 && CFGBBs[i - 1]->getInstructions()->back() && CFGBBs[i - 1]->getInstructions()->back()->getOpcode() != 0b1101111){
+                    //   CFGBBs[i - 1]->addSuccessor(CFGBBs[i]);
+                    //   CFGBBs[i]->addPredecessor(CFGBBs[i - 1]);
+                    // }
+                    // // if not j instruction: link CurrentBB and nextBB
+                    // if(CFGBBs[curBBIndex]->getInstructions()->back() && CFGBBs[curBBIndex]->getInstructions()->back()->getOpcode() != 0b1101111 && curBBIndex < CFGBBsSize - 1 && i != curBBIndex + 1) {
+                    //   cout << "addSuccessor: curBBIndex:" << curBBIndex << " succ: " << (curBBIndex+1) << ", instr_addr: " <<  (*it)->getAddress() << endl;
+                    //   CFGBBs[curBBIndex]->addSuccessor(CFGBBs[curBBIndex + 1]);
+                    //   CFGBBs[curBBIndex + 1]->addPredecessor(CFGBBs[curBBIndex]);
+                    // }
                     curBBIndex++;
                     break;
                   }
@@ -1815,11 +1829,11 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
                 // Add callTarget info in this bb
                 CFGBBs[curBBIndex]->setCallTarget((*it)->getCallTarget());
                 // Link currentBB and nextBB
-                if(curBBIndex < CFGBBsSize - 1) {
-                  cout << "addSuccessor: curBBIndex:" << curBBIndex << " succ: " << (curBBIndex+1) << ", instr_addr: " <<  (*it)->getAddress() << endl;
-                  CFGBBs[curBBIndex]->addSuccessor(CFGBBs[curBBIndex + 1]);
-                  CFGBBs[curBBIndex + 1]->addPredecessor(CFGBBs[curBBIndex]);
-                }
+                // if(curBBIndex < CFGBBsSize - 1) {
+                //   cout << "addSuccessor: curBBIndex:" << curBBIndex << " succ: " << (curBBIndex+1) << ", instr_addr: " <<  (*it)->getAddress() << endl;
+                //   CFGBBs[curBBIndex]->addSuccessor(CFGBBs[curBBIndex + 1]);
+                //   CFGBBs[curBBIndex + 1]->addPredecessor(CFGBBs[curBBIndex]);
+                // }
               }
             }
           }
@@ -2168,6 +2182,14 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
           ass_bb->addInstruction(*assInstrsOfFunctionIt);
           assInstrsOfFunctionIt++;
         }
+        if(ass_CFG->getSize() >= 1) {
+          AssemblyBasicBlock *lastBB = ass_CFG->getBasicBlocks().back();
+          if(lastBB->getInstructions()->back()->getOpcode() != 0b1101111) {
+          // if not j instruction: link lastBB and CurrentBB
+            lastBB->addSuccessor(ass_bb);
+            ass_bb->addPredecessor(lastBB);
+          }
+        }
         ass_CFG->addBasicBlock(ass_bb);
       }
       // Process last BB, addr range: [branchTargetSet.last ~ branchTargetSet.first + sizeof_assInstrsOfFunction]
@@ -2180,6 +2202,14 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
         while (assInstrsOfFunctionIt != assInstrsOfFunction.end() && (*assInstrsOfFunctionIt)->getAddress() < SectionAddr + ass_bb->getEndAddress()) {
           ass_bb->addInstruction(*assInstrsOfFunctionIt);
           assInstrsOfFunctionIt++;
+        }
+        if(ass_CFG->getSize() >= 1) {
+          AssemblyBasicBlock *lastBB = ass_CFG->getBasicBlocks().back();
+          if(lastBB->getInstructions()->back()->getOpcode() != 0b1101111) {
+          // if not j instruction: link lastBB and CurrentBB
+            lastBB->addSuccessor(ass_bb);
+            ass_bb->addPredecessor(lastBB);
+          }
         }
         ass_CFG->addBasicBlock(ass_bb);
       }
@@ -2222,11 +2252,6 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
                   CFGBBs[i - 1]->addSuccessor(CFGBBs[i]);
                   CFGBBs[i]->addPredecessor(CFGBBs[i - 1]);
                 }
-                // if not j instruction: link CurrentBB and nextBB
-                if(CFGBBs[curBBIndex]->getInstructions()->back()->getOpcode() != 0b1101111 && curBBIndex < CFGBBsSize - 1 && i != curBBIndex + 1) {
-                  CFGBBs[curBBIndex]->addSuccessor(CFGBBs[curBBIndex + 1]);
-                  CFGBBs[curBBIndex + 1]->addPredecessor(CFGBBs[curBBIndex]);
-                }
                 curBBIndex++;
                 break;
               }
@@ -2243,12 +2268,6 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
             }
             // Add callTarget info in this bb
             CFGBBs[curBBIndex]->setCallTarget((*it)->getCallTarget());
-            // Link currentBB and nextBB
-            if(curBBIndex < CFGBBsSize - 1) {
-              cout << "addSuccessor: curBBIndex:" << curBBIndex << " succ: " << (curBBIndex+1) << ", instr_addr: " <<  (*it)->getAddress() << endl;
-              CFGBBs[curBBIndex]->addSuccessor(CFGBBs[curBBIndex + 1]);
-              CFGBBs[curBBIndex + 1]->addPredecessor(CFGBBs[curBBIndex]);
-            }
           }
         }
       }

@@ -209,7 +209,7 @@ namespace MetaTrans{
             std::cout << v->hashCode() << ", ";
         std::cout << " ]" << std::endl;
 
-        std::cout << "\n\n>>== Printing TIR info of function at: " << mF << " ==<<" << "\n";
+        std::cout << "\n\n>>== Printing TIR info of function at: " << mF << ", " << mF->getFunctionName() << " ==<<" << "\n";
         std::cout << mF->toString() << std::endl;
         for_each(mF->bb_begin(), mF->bb_end(), [&] (MetaBB* bb) {
             std::cout << "-- Memory address of Meta BB: " << bb << " --" << "\n";
