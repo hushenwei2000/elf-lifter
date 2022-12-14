@@ -1838,7 +1838,9 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
             }
           }
 
-
+          
+          ass_CFG->FindPrologue();
+          
           ass_CFG->ProcessFuncCall();
 
 
@@ -1872,7 +1874,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
           ass_CFG->TraverseLoadStore();
 
 
-          ass_CFG->FindPrologue();
+          
           ass_CFG->FindRet();
           //ass_CFG->FindEpilogue();
 
@@ -2272,6 +2274,9 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
         }
       }
 
+
+      ass_CFG->FindPrologue();
+      
       // Process JAL ra, imm => Call a0/fa0, imm
       ass_CFG->ProcessFuncCall();
 
@@ -2297,7 +2302,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
       //  if(ISA_type>=3)
       //    ass_CFG->ProcessRISCVGP();
 
-      ass_CFG->FindPrologue();
+
       ass_CFG->FindRet();
       ass_CFG->TraverseLoadStore();
 

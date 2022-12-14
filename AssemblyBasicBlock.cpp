@@ -298,7 +298,7 @@ AssemblyInstruction* AssemblyBasicBlock::FindLocalDef(int32_t reg, std::vector<A
  printf("FindLocalDef Starts!\n\n");
 
   for(int i = index-1; i>=0; i--){
-      if((*InstVec)[i]->getRd() != -1 && (*InstVec)[i]->getRd() == reg){
+      if((*InstVec)[i]->getRd() != -1 && (*InstVec)[i]->getRd() == reg && !(*InstVec)[i]->ifPrologueEpilogue()){
         //printf("FindLocalDef Done!, reg = %d \n\n", reg);
         return (*InstVec)[i];
       }
@@ -315,7 +315,7 @@ AssemblyInstruction* AssemblyBasicBlock::FindGlobalDef(int32_t reg, std::vector<
 
   for(auto it = InstVec->rbegin(); 
       it!= InstVec->rend(); it++){
-      if((*it)->getRd() == reg && (*it)->getRd() != -1)
+      if((*it)->getRd() == reg && (*it)->getRd() != -1 && !(*it)->ifPrologueEpilogue())
         return (*it);
   }
   //printf("Def Not Found! Leaving FindGlobalDef()\n");
