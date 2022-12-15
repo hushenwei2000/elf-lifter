@@ -224,7 +224,8 @@ namespace MetaTrans {
 
     MetaInst& MetaInst::buildFromJSON(llvm::json::Object JSON, std::unordered_map<int64_t, MetaBB*>& tempBBMap, std::unordered_map<int64_t, MetaOperand*>& tempOperandMap) {
         json::Array& ops = *(JSON["type"].getAsArray());
-        
+        std::string originInst = JSON["originInst"].getAsString().getValue().str();
+        (*this).setOriginInst(originInst);
         for (int i = 0; i < ops.size(); ++i) {
             std::string op = ops[i].getAsString().getValue().str();
             addInstType(MetaUtil::stringToInstType(op));
@@ -440,11 +441,7 @@ namespace MetaTrans {
 
     MetaBB& MetaBB::addFeature(int f) {
         features.push_back(f);
-        int innerProduct = 0;
-        for (int i = 0; i < features.size(); ++i) {
-            innerProduct += features[i];
-        }
-        modular = sqrt(innerProduct * 1.0);
+        modular = sqrt((modular * modular + f * f) * 1.0);
         return *this;
     }
 
@@ -522,6 +519,8 @@ namespace MetaTrans {
     double MetaBB::getModular() { return modular; }
 
     double MetaBB::similarity(MetaBB& bb) {
+        if (!modular && !bb.getModular()) return 1.0;
+        if (!modular || !bb.getModular()) return 0.0;
         std::vector<int> v = bb.getFeature();
         int dot = 0;
         for (int i = 0; i < features.size(); ++i) {
@@ -683,6 +682,10 @@ namespace MetaTrans {
     int MetaFunction::getArgNum() { return args.size(); }
 
     int MetaFunction::getConstNum() { return constants.size(); }
+
+    MetaBB* MetaFunction::getRoot() { return root; }
+
+    std::vector<MetaBB*>& MetaFunction::getBB() { return bbs; }
 
     MetaArgument* MetaFunction::getArgument(int index) { return args[index]; }
 

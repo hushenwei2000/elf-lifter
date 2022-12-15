@@ -147,7 +147,10 @@ namespace MetaTrans{
             // 这里仅处理local edge
             if (!asmInst->HasLocalEdge(i)) { continue; }
             AssemblyInstruction* source = asmInst->getLocalEdge(i);
+            assert(source);
+            printf("0x%08x --%d-->> 0x%08x\n", asmInst->getAddress(), i, source->getAddress());
             MetaInst* v = instMap[source->hashCode()];
+            assert(v);
             u->addOperand((MetaOperand*)v);
         }
     }
@@ -169,6 +172,7 @@ namespace MetaTrans{
 
             std::unordered_set<AssemblyBasicBlock*> visited;
             auto pair = visit(findAsmBB(asmInst), asmInst->getGlobalEdge(i), visited, true);
+            assert(pair.second);
             u->addOperand(pair.second);
         }
 
