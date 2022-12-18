@@ -308,8 +308,8 @@ namespace MetaTrans {
     std::vector<MetaInst *> MetaInst::findTheSameInst(MetaBB *bb) {
         // Find the instruction has same path: each /data compute/addressing/control flow/ path has the same numLoad, numStore, numPHI, numGEP
         std::vector<MetaInst *> ans;
-        for_each(bb->inst_begin(), bb->inst_end(), [&] (MetaInst* inst)) { 
-            if(inst->isType(type[0]) {
+        for_each(bb->inst_begin(), bb->inst_end(), [&] (MetaInst* inst) { 
+            if(inst->isType(type[0])) {
               std::vector<Path *> anotherPath = inst->getAllPath();
               if(paths.size() == anotherPath.size()) {
                 for (int i = 0; i < paths.size(); i++) {
@@ -324,7 +324,7 @@ namespace MetaTrans {
                 }
               }
             }
-        }
+        });
         return ans;
     }
 
