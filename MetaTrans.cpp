@@ -185,7 +185,7 @@ namespace MetaTrans {
 //===-------------------------------------------------------------------------------===//
 /// Meta Instruction implementation.
 
-    MetaInst::MetaInst() { }
+    MetaInst::MetaInst() : paths(3) { }
 
     MetaInst::MetaInst(std::vector<InstType> ty) : type(ty) { }
 
@@ -295,6 +295,59 @@ namespace MetaTrans {
             if (each.color == c) return true;
         }
         return false;
+    }
+    
+    std::vector<Path *>& MetaInst::getAllPath() { return paths; }
+
+    Path* MetaInst::getPath(int type) { return paths[type]; }
+
+    void MetaInst::addToPath(Path* p) {
+        paths.push_back(p);
+    }
+
+    std::vector<MetaInst *> MetaInst::findTheSameInst(MetaBB *bb) {
+        // Find the instruction has same path: each /data compute/addressing/control flow/ path has the same numLoad, numStore, numPHI, numGEP
+        std::vector<MetaInst *> ans;
+        for_each(bb->inst_begin(), bb->inst_end(), [&] (MetaInst* inst) { 
+            if(inst->isType(type[0])) {
+              std::vector<Path *> anotherPath = inst->getAllPath();
+              if(paths.size() == anotherPath.size()) {
+                for (int i = 0; i < paths.size(); i++) {
+                    if(*(paths[i]) == *(anotherPath[i])) {
+                        if(i == paths.size() - 1) {
+                          ans.push_back(inst);
+                          break;
+                        }
+                    }else {
+                      break;
+                    }
+                }
+              }
+            }
+        });
+        return ans;
+    }
+
+    void MetaInst::buildEquivClass(){
+        auto vec = this->getOperandList();
+        this->EquivClassTag = 1;
+        for(auto i = vec.begin(); i!=vec.end();i++){
+               if((*i)->isMetaInst())
+                  (dynamic_cast<MetaInst*>(*i))->buildEquivClass();     
+        }
+    }
+
+    void MetaInst::resetEquivClass(){
+        auto vec = this->getOperandList();
+        this->EquivClassTag = 0;
+        for(auto i = vec.begin(); i!=vec.end();i++){
+               if((*i)->isMetaInst())
+                  (dynamic_cast<MetaInst*>(*i))->resetEquivClass();     
+        }
+    }
+
+    bool MetaInst::ifMatched(){
+        return this->Matched;
     }
 
 //===-------------------------------------------------------------------------------===//

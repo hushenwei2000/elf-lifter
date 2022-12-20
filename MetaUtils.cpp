@@ -284,20 +284,30 @@ namespace MetaTrans {
         return 0;
     }
 
-    void MetaUtil::paintInsColorRecursive(MetaInst* inst, int color, int type, int depth) {
+    void MetaUtil::paintInsColorRecursive(MetaInst* inst, int color, int type, int depth, Path* p) {
         inst->addColor(color, type);
         for(int i = -1; i < depth; i++) {std::cout << "  ";}
         printf("%x(%d) ", inst, color);
         std::vector<InstType> types = inst->getInstType();
         for(int i = 0; i < types.size(); i++) {
             std::cout << InstTypeName[types[i]] << ", ";
+            if(inst->isType(InstType::LOAD)) {
+                p->numLoad++;
+            }else if(inst->isType(InstType::STORE)) {
+                p->numStore++;
+            }else if(inst->isType(InstType::PHI)) {
+                p->numPHI++;
+            }
+            // else if(inst->isType(InstType::GEP)) { // GEP not implemented yet
+
+            // }
         }
         printf(" -> \n");
         if(!inst->isType(InstType::LOAD) && !inst->isType(InstType::PHI)) { // Paint until `load` or `phi` or no upstream instruction
             std::vector<MetaOperand*> ops = inst->getOperandList();
             for(int i = 0; i < ops.size(); i++) {
                 if(ops[i]->isMetaInst()) {
-                    paintInsColorRecursive((MetaInst*)(ops[i]), color, type, depth + 1);
+                    paintInsColorRecursive((MetaInst*)(ops[i]), color, type, depth + 1, p);
                 }
             }
         }else {
@@ -321,9 +331,16 @@ namespace MetaTrans {
                         for(int i = 0; i < ops.size(); i++) {
                             if(ops[i]->isMetaInst()) {
                                 inst->addColor(startColor, i);
-                                printf("Color: %d, Type: %s\n", startColor, name[i].c_str());
+                                Path* p = new Path{(MetaInst*)(ops[i]), i, 0, 0, 0, 0};
+                                inst->addToPath(p);
+                                printf("Color: %d, Type: %s\n", startColor,
+                                       name[i].c_str());
                                 printf("%x(%d) STORE,  -> \n", inst, startColor);
-                                paintInsColorRecursive((MetaInst*)(ops[i]), startColor, i, 0);
+                                paintInsColorRecursive((MetaInst*)(ops[i]), startColor, i, 0, p);
+                                printf("%x, type: %d, numLoad: %d, numStore: "
+                                       "%d, numPHI: %d, numGEP: %d\n",
+                                       p->firstNode, p->type, p->numLoad,
+                                       p->numStore, p->numPHI, p->numGEP);
                                 startColor++;
                             }
                         }
@@ -333,10 +350,15 @@ namespace MetaTrans {
                         std::cout << "IsLoad " << ops.size() <<  std::endl;
                         for(int i = 0; i < ops.size(); i++) {
                             if(ops[i]->isMetaInst()) {
+                                Path* p = new Path{(MetaInst*)(ops[i]), 1, 0, 0, 0, 0};
                                 inst->addColor(startColor, 1);
                                 printf("Color: %d, Type: Addressing\n", startColor);
                                 printf("%x(%d) LOAD,  -> \n", inst, startColor);
-                                paintInsColorRecursive((MetaInst*)(ops[i]), startColor, 1, 0);
+                                paintInsColorRecursive((MetaInst*)(ops[i]), startColor, 1, 0, p);
+                                printf("%x, type: %d, numLoad: %d, numStore: "
+                                       "%d, numPHI: %d, numGEP: %d\n",
+                                       p->firstNode, p->type, p->numLoad,
+                                       p->numStore, p->numPHI, p->numGEP);
                                 startColor++;
                             }
                         }
@@ -346,10 +368,16 @@ namespace MetaTrans {
                         std::vector<MetaOperand*> ops = inst->getOperandList();
                         for(int i = 0; i < ops.size(); i++) {
                             if(ops[i]->isMetaInst()) {
+                                Path* p = new Path{(MetaInst*)(ops[i]), 2, 0, 0, 0, 0};
+                                inst->addToPath(p);
                                 inst->addColor(startColor, 2);
                                 printf("Color: %d, Type: Control Flow\n", startColor);
                                 printf("%x(%d) BRANCH,  -> \n", inst, startColor);
-                                paintInsColorRecursive((MetaInst*)(ops[i]), startColor, 2, 0);
+                                paintInsColorRecursive((MetaInst*)(ops[i]), startColor, 2, 0, p);
+                                printf("%x, type: %d, numLoad: %d, numStore: "
+                                       "%d, numPHI: %d, numGEP: %d\n",
+                                       p->firstNode, p->type, p->numLoad,
+                                       p->numStore, p->numPHI, p->numGEP);
                                 startColor++;
                             }
                         }
