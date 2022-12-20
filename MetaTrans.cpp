@@ -231,6 +231,15 @@ namespace MetaTrans {
             addInstType(MetaUtil::stringToInstType(op));
         }
 
+        json::Array* paths = JSON.getArray("path");
+        if(paths) {
+            for(int i = 0; i < (*paths).size(); i++) {
+                json::Array& path = *((*paths)[i].getAsArray());
+                this->paths[path[0].getAsInteger().getValue()] = new Path{nullptr, path[0].getAsInteger().getValue(), path[1].getAsInteger().getValue(),  path[2].getAsInteger().getValue(), path[3].getAsInteger().getValue(), path[4].getAsInteger().getValue()};
+                // printf("path.size() = %d\n", path.size());
+                // std::cout << "type: " << path[0].getAsInteger().getValue() << " numLoad: " <<  path[1].getAsInteger().getValue() << " numStore: " <<  path[2].getAsInteger().getValue()<< " numPHI: " <<  path[3].getAsInteger().getValue() << " numGEP: " <<  path[4].getAsInteger().getValue() << "\n";
+            }
+        }
         return *this;
     }
 
@@ -277,13 +286,37 @@ namespace MetaTrans {
     std::string MetaInst::toString() {
         std::string opList = operandList.size() == 0 ? "[]" : "[";
         for (MetaOperand* oprand : operandList) { opList = opList + std::to_string(oprand->getID()) + ","; }
+        std::string path = "[";
+        for (int i = 0; i < 3; i++) {
+            if(type[0] == InstType::LOAD && i == 1) {
+                if(paths.size() > i) {
+                    Path *p = paths[i];
+                    if(p) path += "[" + std::to_string(p->type) + "," +std::to_string(p->numLoad) + "," +std::to_string(p->numStore) + "," +std::to_string(p->numPHI) + "," +std::to_string(p->numGEP) + "]";
+                }
+                break;
+            } else if (type[0] == InstType::STORE && (i == 0 || i == 1)) {
+                if(paths.size() > i) {
+                    if (i == 1 && paths[0]) path += ",";
+                    Path *p = paths[i];
+                    if(p) path += "[" + std::to_string(p->type) + "," +std::to_string(p->numLoad) + "," +std::to_string(p->numStore) + "," +std::to_string(p->numPHI) + "," +std::to_string(p->numGEP) + "]";
+                }
+            } else if (type[0] == InstType::BRANCH && (i == 2)) {
+                if(paths.size() > i) {
+                    Path *p = paths[i];
+                    if(p) path += "[" + std::to_string(p->type) + "," +std::to_string(p->numLoad) + "," +std::to_string(p->numStore) + "," +std::to_string(p->numPHI) + "," +std::to_string(p->numGEP) + "]";
+                }
+                break;
+            }
+        }
+        path += "]";
         opList[opList.length() - 1] = ']';
         std::string str = "";
-        return str + "{" + "\"id\":" + std::to_string(id) + 
-            ",\"originInst\":" + "\"" + originInst + "\"" +
-            ",\"isMetaPhi\":false,\"type\":" + MetaUtil::toString(type)
-            + "," + "\"operandList\":" + opList +
-            "}";
+        str = str + "{" + "\"id\":" + std::to_string(id) + ",\"originInst\":" + "\"" +
+            originInst + "\"" +
+            ",\"isMetaPhi\":false,\"type\":" + MetaUtil::toString(type) + "," +
+            "\"operandList\":" + opList + "," + "\"path\":" + path + "}";
+        std::cout << str << std::endl;
+        return str;
     }
 
     void MetaInst::addColor(int c, int t) { colors.insert(ColorData(c,t)); }
@@ -301,6 +334,13 @@ namespace MetaTrans {
 
     Path* MetaInst::getPath(int type) { return paths[type]; }
 
+    void MetaInst::dumpPath(int index) {
+        printf("%x, type: %d, numLoad: %d, numStore: "
+            "%d, numPHI: %d, numGEP: %d\n",
+            paths[index]->firstNode, paths[index]->type, paths[index]->numLoad,
+            paths[index]->numStore, paths[index]->numPHI, paths[index]->numGEP);
+    }
+
     void MetaInst::addToPath(Path* p) {
         paths.push_back(p);
     }
@@ -308,23 +348,35 @@ namespace MetaTrans {
     std::vector<MetaInst *> MetaInst::findTheSameInst(MetaBB *bb) {
         // Find the instruction has same path: each /data compute/addressing/control flow/ path has the same numLoad, numStore, numPHI, numGEP
         std::vector<MetaInst *> ans;
-        for_each(bb->inst_begin(), bb->inst_end(), [&] (MetaInst* inst) { 
-            if(inst->isType(type[0])) {
-              std::vector<Path *> anotherPath = inst->getAllPath();
-              if(paths.size() == anotherPath.size()) {
-                for (int i = 0; i < paths.size(); i++) {
-                    if(*(paths[i]) == *(anotherPath[i])) {
-                        if(i == paths.size() - 1) {
-                          ans.push_back(inst);
-                          break;
+        for (auto it = bb->inst_begin(); it != bb->inst_end(); it++) {
+            MetaInst *inst = *it;
+            std::vector<Path *> anotherPath = inst->getAllPath();
+            std::cout << inst->toString() << std::endl;
+            if (inst->isType(type[0])) {
+                if(type[0] == InstType::BRANCH) {
+                  inst->dumpPath(2);
+                  if (*(paths[2]) == *(anotherPath[2])) { // control flow
+                    std::cout << "findTheSamePath" << std::endl;
+                    ans.push_back(inst);
+                  }
+                }else {
+                    inst->dumpPath(1);
+                    if(*(paths[1]) == *(anotherPath[1])) { // addressing
+                        if(type[0] == InstType::STORE) {
+                            inst->dumpPath(0);
+                            if(*(paths[0]) == *(anotherPath[0])) { // data compute
+                                std::cout << "findTheSamePath" << std::endl;
+                                ans.push_back(inst);
+                            }
+                        }else {
+                            std::cout << "findTheSamePath" << std::endl;
+                            ans.push_back(inst);
                         }
-                    }else {
-                      break;
                     }
                 }
-              }
             }
-        });
+        }
+        std::cout << "Exit findTheSameInst" << std::endl;
         return ans;
     }
 
@@ -771,6 +823,10 @@ namespace MetaTrans {
         MetaConstant* newConst = new MetaConstant(this);
         constants.push_back(newConst);
         return newConst;
+    }
+
+    MetaInst* MetaFunction::findDataSource(MetaInst* inst) {
+        
     }
 
     std::string MetaFunction::toString() {

@@ -243,6 +243,8 @@ namespace MetaTrans {
 
             MetaInst& setParent(MetaBB* bb);
 
+            void dumpPath(int index);
+
             MetaInst& addOperand(MetaOperand* op);
 
             std::string getOriginInst();
