@@ -328,6 +328,28 @@ namespace MetaTrans {
         return ans;
     }
 
+    void MetaInst::buildEquivClass(){
+        auto vec = this->getOperandList();
+        this->EquivClassTag = 1;
+        for(auto i = vec.begin(); i!=vec.end();i++){
+               if((*i)->isMetaInst())
+                  (dynamic_cast<MetaInst*>(*i))->buildEquivClass();     
+        }
+    }
+
+    void MetaInst::resetEquivClass(){
+        auto vec = this->getOperandList();
+        this->EquivClassTag = 0;
+        for(auto i = vec.begin(); i!=vec.end();i++){
+               if((*i)->isMetaInst())
+                  (dynamic_cast<MetaInst*>(*i))->resetEquivClass();     
+        }
+    }
+
+    bool MetaInst::ifMatched(){
+        return this->Matched;
+    }
+
 //===-------------------------------------------------------------------------------===//
 /// Meta Phi Instruction implementation.
 

@@ -221,6 +221,10 @@ namespace MetaTrans {
 
             std::vector<Path*> paths ; // fitst node of path, (0 data computing 1 addressing 3 control flow)
 
+            int EquivClassTag;    
+
+            bool Matched;    
+
           public:
 
             MetaInst();
@@ -289,6 +293,12 @@ namespace MetaTrans {
             void addToPath(Path* p);
             
             std::vector<MetaInst *> findTheSameInst(MetaBB *bb);
+
+            void buildEquivClass();
+
+            void resetEquivClass();
+
+            bool ifMatched();
     };
 
     /// represent a phi node.
