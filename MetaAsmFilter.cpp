@@ -123,8 +123,21 @@ namespace MetaTrans {
         MetaAsmBuilder&                             builder     =   dynamic_cast<MetaAsmBuilder&>(target);
         MetaFunction&                               metaFunc    =   *(builder.mF);
 
+        // 0: in, 1: out;
+        std::unordered_map<MetaBB*, std::vector<int>> degreeMap;
+
+        for (auto bb_iter = metaFunc.begin(); bb_iter != metaFunc.end(); ++bb_iter) {
+            degreeMap[*bb_iter] = std::vector<int>(2, 0);
+        }
+
         for (auto bb_iter = metaFunc.begin(); bb_iter != metaFunc.end(); ++bb_iter) {
             MetaBB& bb = **bb_iter;
+            // self loop只统计入度
+            for (auto next_bb = bb.next_begin(); next_bb != bb.next_end(); ++next_bb) {
+                degreeMap[*next_bb][0]++;
+                if (*next_bb != *bb_iter) degreeMap[*bb_iter][1]++;
+            }
+            // 统计 load store 数量
             int load_count = 0, store_count = 0;
             for (auto inst_iter = bb.inst_begin(); inst_iter != bb.inst_end(); ++inst_iter) {
                 MetaInst& inst = **inst_iter;
@@ -135,6 +148,13 @@ namespace MetaTrans {
             bb
                 .addFeature(load_count)
                 .addFeature(store_count)
+                ;
+        }
+
+        for (auto bb_iter = metaFunc.begin(); bb_iter != metaFunc.end(); ++bb_iter) {
+            (**bb_iter)
+                .addFeature(degreeMap[*bb_iter][0])
+                .addFeature(degreeMap[*bb_iter][1])
                 ;
         }
 
