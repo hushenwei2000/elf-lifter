@@ -2098,7 +2098,7 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
 
               ass_ins->dump();
               uint64_t fallThruIndex = Index + Size;
-              branchTargetSet.insert(fallThruIndex);
+              // branchTargetSet.insert(fallThruIndex);    // Because LLVM_IR not divide function call into 2 BBs
               cout << "Mark a target (next instr after Call): " << fallThruIndex << endl;
             }
           }
