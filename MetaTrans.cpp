@@ -382,19 +382,21 @@ namespace MetaTrans {
 
     void MetaInst::buildEquivClass(){
         auto vec = this->getOperandList();
+        auto bb  = this->getParent();
         this->EquivClassTag = 1;
         for(auto i = vec.begin(); i!=vec.end();i++){
-               if((*i)->isMetaInst())
-                  (dynamic_cast<MetaInst*>(*i))->buildEquivClass();     
+               if((*i)->isMetaInst() && (*i)->getParent() == bb)
+                    (dynamic_cast<MetaInst*>(*i))->buildEquivClass(); 
         }
     }
 
     void MetaInst::resetEquivClass(){
         auto vec = this->getOperandList();
+        auto bb  = this->getParent();
         this->EquivClassTag = 0;
         for(auto i = vec.begin(); i!=vec.end();i++){
-               if((*i)->isMetaInst())
-                  (dynamic_cast<MetaInst*>(*i))->resetEquivClass();     
+               if((*i)->isMetaInst() && (*i)->getParent() == bb)
+                    (dynamic_cast<MetaInst*>(*i))->resetEquivClass();     
         }
     }
 
