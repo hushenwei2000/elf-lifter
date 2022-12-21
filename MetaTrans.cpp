@@ -825,10 +825,6 @@ namespace MetaTrans {
         return newConst;
     }
 
-    MetaInst* MetaFunction::findDataSource(MetaInst* inst) {
-        
-    }
-
     std::string MetaFunction::toString() {
         std::string funcStr = "{";
 
