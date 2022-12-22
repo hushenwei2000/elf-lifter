@@ -742,6 +742,8 @@ namespace MetaTrans {
     }
 
     MetaFunction::MetaFunction(std::string JSON) {
+        std::cout << "MetaFunction::MetaFunction(std::string JSON)" << std::endl;
+        std::cout << JSON << std::endl;
         llvm::Expected<json::Value> expect = json::parse(JSON);
         if (expect.takeError()) {
             std::cout << "parse function json error!" << "\n";
