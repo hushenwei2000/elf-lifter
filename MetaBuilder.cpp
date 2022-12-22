@@ -32,10 +32,45 @@ namespace MetaTrans{
         return *this;
     }
 
-    MetaAsmBuilder& MetaAsmBuilder::setTypeMap(std::unordered_map<std::string, std::vector<InstType>>* map) {
+    //MetaAsmBuilder& MetaAsmBuilder::setTypeMap(std::unordered_map<std::string, std::vector<InstType>>* map) {
+    MetaAsmBuilder& MetaAsmBuilder::setTypeMap(std::unordered_map<std::string, std::vector<std::pair<InstType,std::vector<int>>>>* map) {
         typeMap = map;
         return *this;
     }
+
+    std::vector<vector<int>>* MetaAsmBuilder::getTypeSrc(std::string key){
+        auto typesrc = new vector<vector<int>>();
+        for(auto it = typeMap->begin(); it != typeMap->end();it++){
+            if( key == it->first ){
+                for(auto i = it->second.begin(); i!=it->second.end();i++){
+                    typesrc->push_back(i->second);
+                    if(i->second.size()!=0){
+                        std::cout   << "DEBUG::MetaAsmBuilder::getTypeSrc:: Operand "
+                                    << i->first << ", Of Inst  " <<  key 
+                                    << "has the type source " << i->second[0] << std::endl;
+                    }
+                }
+                break;
+            }
+        }
+        return typesrc;
+
+    }
+
+    unordered_map<string, vector<InstType>>* MetaAsmBuilder::getTypeMap() {
+        auto map = new unordered_map<string, vector<InstType>>();
+        for(auto it = typeMap->begin(); it!=typeMap->end();it++){
+            auto key = it->first;
+            std::vector<InstType> types;
+            for(auto i = it->second.begin(); i!=it->second.end();i++){
+                types.push_back(i->first);
+            }
+            (*map)[key] =types;
+        }
+
+        return map;
+    }
+
 
     MetaFunction* MetaAsmBuilder::build() {
         (*this)

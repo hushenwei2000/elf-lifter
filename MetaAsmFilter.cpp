@@ -22,7 +22,8 @@ namespace MetaTrans {
     void AsmInstFilter::doFilter(FilterTarget& target, FilterChain& chain) {
         MetaAsmBuilder&                             builder     =   dynamic_cast<MetaAsmBuilder&>(target);
         AssemblyCFG&                                cfg         =   *(builder.cfg);
-        unordered_map<string, vector<InstType>>&    typeMap     =   *(builder.typeMap);
+        //unordered_map<string, vector<InstType>>&    typeMap     =   *(builder.typeMap);
+        unordered_map<string, vector<InstType>>&    typeMap     =   *(builder.getTypeMap());
 
         // for (auto iter = typeMap.begin(); iter != typeMap.end(); ++iter) {
         //     std::cout << iter->first << " -->> ";
@@ -50,6 +51,7 @@ namespace MetaTrans {
                 (*metaInst)
                     .setOriginInst(mnemonic)
                     .setInstType(opList)
+                    .setTypeSrc(*(builder.getTypeSrc(mnemonic)));
                     ;
 
             }

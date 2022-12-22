@@ -404,6 +404,13 @@ namespace MetaTrans {
         return this->Matched;
     }
 
+    
+    MetaInst& MetaInst::setTypeSrc(std::vector<std::vector<int>> src){
+        typeSrc = src;
+        return (*this);
+    }
+
+
 //===-------------------------------------------------------------------------------===//
 /// Meta Phi Instruction implementation.
 

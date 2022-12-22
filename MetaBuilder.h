@@ -27,7 +27,7 @@ AssemblyCFG*    cfg;
 
 MetaFunction*   mF;
 
-std::unordered_map<string, std::vector<InstType>>*      typeMap;
+std::unordered_map<std::string, std::vector<std::pair<InstType,std::vector<int>>>>*      typeMap;
 
 // Auxiliary map, record the reflection between primitive type and Meta type.
 
@@ -93,13 +93,18 @@ MetaAsmBuilder();
 
 MetaAsmBuilder& setAsmCFG(AssemblyCFG* c);
 
-MetaAsmBuilder& setTypeMap(std::unordered_map<std::string, std::vector<InstType>>* map);
+MetaAsmBuilder& setTypeMap(std::unordered_map<std::string, std::vector<std::pair<InstType,std::vector<int>>>>* map);
 
 MetaFunction* build();
 
 void paintColor(int startColor);
 
 void paintInsColorRecursive(MetaInst* ins, int color, int type, int depth);
+
+unordered_map<string, vector<InstType>>* getTypeMap();
+
+std::vector<vector<int>>* getTypeSrc(std::string key);
+
 
 };
 

@@ -141,56 +141,83 @@ REMW:
 REMUW:
   - REMAINDER
 LR.W:
+  - LOAD
 SC.W:
+  - STORE
 AMOSWAP.W:
-  - LOAD
-  - SWAP
+  - LOAD: 1
+  - SWAP: 2
+  - STORE: 1
 AMOADD.W:
-  - LOAD
-  - ADD
+  - LOAD: 1
+  - ADD: 2
+  - STORE: 1
 AMOXOR.W:
-  - LOAD
-  - XOR
+  - LOAD: 1
+  - XOR: 2
+  - STORE: 1
 AMOAND.W:
-  - LOAD
-  - AND
+  - LOAD: 1
+  - AND: 2
+  - STORE: 1
 AMOOR.W:
-  - LOAD
-  - OR
+  - LOAD: 1
+  - OR: 2
+  - STORE: 1
 AMOMIN.W:
-  - LOAD
+  - LOAD: 1
+  - MIN: 2
+  - STORE: 1
 AMOMAX.W:
-  - LOAD
+  - LOAD: 1
+  - MAX: 2
+  - STORE: 1
 AMOMINU.W:
-  - LOAD
+  - LOAD: 1
+  - MIN: 2
+  - STORE: 1
 AMOMAXU.W:
-  - LOAD
+  - LOAD: 1
+  - MAX: 2
+  - STORE: 1
 LR.D:
   - LOAD
 SC.D:
   - LOAD
 AMOSWAP.D:
-  - LOAD
+  - LOAD: 1
 AMOADD.D:
-  - LOAD
-  - ADD
+  - LOAD: 1
+  - ADD: 2
+  - STORE: 1
 AMOXOR.D:
-  - LOAD
-  - XOR
+  - LOAD: 1
+  - XOR: 2
+  - STORE: 1
 AMOAND.D:
-  - LOAD
-  - AND
+  - LOAD: 1
+  - AND: 2
+  - STORE: 1
 AMOOR.D:
-  - LOAD
-  - OR
+  - LOAD: 1
+  - OR: 2
+  - STORE: 1
 AMOMIN.D:
-  - LOAD
+  - LOAD: 1
+  - MIN: 2
+  - STORE: 1
 AMOMAX.D:
-  - LOAD
+  - LOAD: 1
+  - MAX: 2
+  - STORE: 1
 AMOMINU.D:
-  - LOAD
+  - LOAD: 1
+  - MIN: 2
+  - STORE: 1
 AMOMAXU.D:
-  - LOAD
+  - LOAD: 1
+  - MAX: 2
+  - STORE: 1
 FLW:
   - LOAD
 FCVT.L.S:
@@ -204,7 +231,8 @@ FCVT.S.LU:
 FSW:
   - STORE
 FMADD.S:
-  - MUL
+  - MUL: 1, 2
+  - ADD: 3
 FMSUB.S:
   - MUL
 FNMSUB.S:
@@ -257,19 +285,19 @@ FMV.D.X:
 FSD:
   - STORE
 FMADD.D:
-  - MUL
-  - ADD
+  - MUL: 1, 2
+  - ADD: 3
 FMSUB.D:
-  - MUL
-  - SUB
+  - MUL: 1, 2
+  - SUB: 3
 FNMSUB.D:
-  - MUL
+  - MUL: 1, 2
   - NEG
-  - SUB
+  - SUB: 3
 FNMADD.D:
-  - MUL
+  - MUL: 1, 2
   - NEG
-  - ADD
+  - ADD: 3
 FADD.D:
   - ADD
 FSUB.D:
@@ -316,19 +344,19 @@ FCVT.Q.LU:
 FSQ:
   - STORE
 FMADD.Q:
-  - MUL
-  - ADD
+  - MUL: 1, 2
+  - ADD: 3
 FMSUB.Q:
-  - MUL
-  - SUB
+  - MUL: 1, 2
+  - SUB: 3
 FNMSUB.Q:
-  - MUL
+  - MUL: 1, 2
   - NEG
-  - SUB
+  - SUB: 3
 FNMADD.Q:
-  - MUL
+  - MUL: 1, 2
   - NEG
-  - ADD
+  - ADD: 3
 FADD.Q:
   - ADD
 FSUB.Q:
