@@ -231,10 +231,15 @@ FCVT.S.LU:
 FSW:
   - STORE
 FMADD.S:
-  - MUL: 1, 2
+  - MUL: 
+    - 1
+    - 2
   - ADD: 3
 FMSUB.S:
   - MUL
+    - 1
+    - 2
+  - SUB: 3
 FNMSUB.S:
   - MUL
 FNMADD.S:
@@ -242,7 +247,7 @@ FNMADD.S:
 FADD.S:
   - ADD
 FSUB.S:
-  - MUL
+  - SUB
 FMUL.S:
   - MUL
 FDIV.S:
@@ -252,7 +257,9 @@ FSGNJ.S:
 FSGNJN.S:
 FSGNJX.S:
 FMIN.S:
+  - MIN
 FMAX.S:
+  - MAX
 FCVT.W.S:
   - CONVERT
 FCVT.WU.S:
@@ -285,17 +292,25 @@ FMV.D.X:
 FSD:
   - STORE
 FMADD.D:
-  - MUL: 1, 2
+  - MUL: 
+    - 1
+    - 2
   - ADD: 3
 FMSUB.D:
-  - MUL: 1, 2
+  - MUL: 
+    - 1
+    - 2
   - SUB: 3
 FNMSUB.D:
-  - MUL: 1, 2
+  - MUL: 
+    - 1
+    - 2
   - NEG
   - SUB: 3
 FNMADD.D:
-  - MUL: 1, 2
+  - MUL: 
+    - 1
+    - 2
   - NEG
   - ADD: 3
 FADD.D:
@@ -311,7 +326,9 @@ FSGNJ.D:
 FSGNJN.D:
 FSGNJX.D:
 FMIN.D:
+  - MIN 
 FMAX.D:
+  - MAX
 FCVT.S.D:
   - CONVERT
 FCVT.D.S:
@@ -344,17 +361,25 @@ FCVT.Q.LU:
 FSQ:
   - STORE
 FMADD.Q:
-  - MUL: 1, 2
+  - MUL:
+    - 1
+    - 2
   - ADD: 3
 FMSUB.Q:
-  - MUL: 1, 2
+  - MUL:
+    - 1
+    - 2
   - SUB: 3
 FNMSUB.Q:
-  - MUL: 1, 2
+  - MUL:
+    - 1
+    - 2
   - NEG
   - SUB: 3
 FNMADD.Q:
-  - MUL: 1, 2
+  - MUL:
+    - 1
+    - 2
   - NEG
   - ADD: 3
 FADD.Q:
@@ -370,7 +395,9 @@ FSGNJ.Q:
 FSGNJN.Q:
 FSGNJX.Q:
 FMIN.Q:
+  - MIN
 FMAX.Q:
+  - MAX
 FCVT.S.Q:
   - CONVERT
 FCVT.Q.S:
