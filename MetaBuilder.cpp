@@ -8,6 +8,7 @@
 #include <iostream>
 
 using namespace std;
+int globalColor = 0;
 
 namespace MetaTrans{
 
@@ -80,8 +81,9 @@ namespace MetaTrans{
             .buildMetaElements()
             .buildGraph()
             .buildMetaData()
-            .printTIRinfo()
             ;
+        MetaUtil::paintColor(mF, globalColor++);
+        (*this).printTIRinfo();
         return mF;
     }
 

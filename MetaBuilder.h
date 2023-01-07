@@ -8,7 +8,7 @@
 #include <utility>
 
 class PHI;
-
+extern int globalColor;
 namespace MetaTrans {
 
 class MetaAsmBuilder : public FilterTarget {

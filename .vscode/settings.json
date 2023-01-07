@@ -69,6 +69,10 @@
         "scoped_allocator": "cpp",
         "thread": "cpp",
         "typeindex": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "any": "cpp",
+        "charconv": "cpp",
+        "shared_mutex": "cpp",
+        "variant": "cpp"
     }
 }

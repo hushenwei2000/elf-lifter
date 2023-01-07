@@ -1387,7 +1387,6 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
   //for (const SectionRef &Section : ToolSectionFilter(*Obj));
 
   int times = 0;
-  int globalColor = 0;
   int globalTIRColor = 0;
 
 
@@ -1847,8 +1846,6 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
           for(auto i = CFGBBs.begin();i!=CFGBBs.end();i++){
               cout << "BB[" << (*i)->getId() << "] successors size: " << (*i)->getSuccessors().size() << endl;
               (*i)->BuildLocalEdge();
-              (*i)->PaintColor(globalColor);
-              globalColor++;
           }
           printf("Local Edge Build for All BB Completes!");
 
@@ -2282,8 +2279,6 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
 
       for(auto i = CFGBBs.begin();i!=CFGBBs.end();i++){
           (*i)->BuildLocalEdge();
-          (*i)->PaintColor(globalColor);
-          globalColor++;
       }
       printf("Local Edge Build done!\n");
       for(auto i = CFGBBs.begin();i!=CFGBBs.end();i++){
@@ -2494,7 +2489,6 @@ static void DumpInput(StringRef file) {
 static MetaTrans::MetaAsmBuilder builder;
 
 static void DumpTIR() {
-  int glbcolor = 0;
   std::cout << "\n//==-------------------- START DUMP TIR --------------------==//" << "\n";
   std::vector<MetaTrans::MetaFunction*> funcs;
 
@@ -2506,8 +2500,8 @@ static void DumpTIR() {
                                     .build()
                                     ;
     funcs.push_back(mF);
-    MetaTrans::MetaUtil::paintColor(mF, glbcolor++);
   }
+  std::cout << "\n//==---------- START DUMP FUNCS ----------==//" << "\n";
   std::string str = "[";
   for (auto func : funcs) {
     str += func->toString() + ",";
