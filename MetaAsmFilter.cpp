@@ -48,10 +48,12 @@ namespace MetaTrans {
 
                 MetaInst* metaInst = builder.instMap[(**inst_iter).hashCode()];
                 vector<InstType> opList = typeMap[mnemonic];
+                string _dataRoot = (*inst_iter)->getDataRoot();
                 (*metaInst)
                     .setOriginInst(mnemonic)
                     .setInstType(opList)
-                    .setTypeSrc(*(builder.getTypeSrc(mnemonic)));
+                    .setTypeSrc(*(builder.getTypeSrc(mnemonic)))
+                    .setDataRoot(_dataRoot)
                     ;
 
             }
