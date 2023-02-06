@@ -176,8 +176,10 @@ static void DumpTIR();
 
 GlobalData* MatchGlobalData(uint64_t addr){
   for(auto i = GLOBAL_DATA.begin(); i!=GLOBAL_DATA.end();i++){
-    if(i->addr == addr)
-      return &(*i);
+    // if(i->addr == addr)
+    //   return &(*i);
+    if(i->addr <= addr && i->addr + i->size > addr)
+        return &(*i);
   }
   return NULL;
 }
