@@ -25,6 +25,7 @@ namespace MetaTrans{
     }
 
     MetaAsmBuilder::~MetaAsmBuilder() {
+        clearAuxMaps();
         filterManager.clear();
     }
 
@@ -331,6 +332,8 @@ namespace MetaTrans{
             if (newPhi->equals((MetaPhi*)*i)) {
                 printf("Find same phi node, skip insert.\n");
                 result.second = *i;
+                // bofore delete new phi, remove it from operand's user list.
+                for (MetaOperand* op : newPhi->getOperandList()) op->removeUser(newPhi);
                 delete newPhi; return result;
             }
         }

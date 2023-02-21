@@ -1,5 +1,6 @@
 #include "MetaUtils.h"
 #include <fstream>
+#include <unistd.h>
 
 namespace MetaTrans {
 
@@ -65,7 +66,7 @@ namespace MetaTrans {
         { "FENCE",          InstType::FENCE      },
         { "CONVERT",        InstType::CONVERT    },
         { "HINT",           InstType::HINT       },
-        { "MOV",            InstType::MOV        }
+        { "MOV",            InstType::MOV        },
     };
 
 //===-------------------------------------------------------------------------------===//
@@ -114,7 +115,7 @@ namespace MetaTrans {
             }
         }
         for (auto iter = instList.begin(); iter != instList.end(); ++iter) {
-            outs() << "degree of " << MetaUtil::typeVecToString((*iter)->getInstType()) \
+            outs() << "degree of " << (*iter) << " " << MetaUtil::typeVecToString((*iter)->getInstType()) \
             << " is " << deg[*iter] << "; oprand number is " << op_num[*iter] << '\n';
         } 
 
@@ -179,7 +180,7 @@ namespace MetaTrans {
             case InstType::FENCE:      return "fence"     ;
             case InstType::CONVERT:    return "convert"   ;
             case InstType::HINT:       return "hint"      ;
-            case InstType::MOV:        return "mov"       ;
+            case InstType::MOV:        return "mov"      ;
         }
     }
 
@@ -314,15 +315,17 @@ namespace MetaTrans {
             return;
         }
     }
-    
+
     void MetaUtil::paintColor(MetaFunction* mF, int startColor) {
         std::tuple<int, int, int> counts(0,0,0); // Store, Load, Branch
         std::vector<std::string> name = {"Data Compute", "Addressing",
                                          "Control Flow"};
         std::cout << "\n\n<<== Coloring TIR for CFG: " << mF->getFunctionName() << " ==>>" << "\n";
-        for_each(mF->bb_begin(), mF->bb_end(), [&] (MetaBB* bb) {
+        for (auto func_iter = mF->bb_begin(); func_iter != mF->bb_end(); ++func_iter) {
+            MetaBB* bb = *func_iter;
             std::cout << "-- Coloring Meta BB: " << " --" << "\n";
-            for_each(bb->inst_begin(), bb->inst_end(), [&] (MetaInst* inst) { 
+            for (auto bb_iter = bb->inst_begin(); bb_iter != bb->inst_end(); ++bb_iter) { 
+                MetaInst* inst = *bb_iter;
                 if (!inst->isMetaPhi())
                     if(inst->isType(InstType::STORE)){
                         std::get<0>(counts) = std::get<0>(counts) + 1;
@@ -400,10 +403,10 @@ namespace MetaTrans {
                 else {
                     // TODO
                 }
-            });
+            };
             std::cout << "\n\n-- Coloring Meta BB End! S/L/B= " << std::get<0>(counts) << ", " << std::get<1>(counts) << ", " << std::get<2>(counts) << " --" << "\n";
             counts = std::make_tuple(0, 0, 0);
-        });
+        };
         std::cout << "\n\n<<== Coloring TIR for CFG End! " << " ==>>" << "\n";
     }
 
@@ -436,6 +439,14 @@ namespace MetaTrans {
             ans += ha;
         }
         return ans;
+    }
+
+    /// @brief Get the available memory in MB
+    /// @return 
+    unsigned long long MetaUtil::getAvailableMemory() {
+        long long pages = sysconf(_SC_AVPHYS_PAGES);
+        long long page_size = sysconf(_SC_PAGE_SIZE); // 以MB为单位
+        return (pages * page_size);
     }
 
 }
