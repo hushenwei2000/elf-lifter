@@ -11,6 +11,7 @@
 #include "PHI.h"
 #include "AssemblyFunction.h"
 #include "ASMUtils.h"
+#include <unordered_set>
 
 extern int64_t  GP_BASE;
 
@@ -345,8 +346,9 @@ void AssemblyCFG::TraverseLoadStore(){
           // Need double check.....
           // if((*it)->getRs1() == 10)
           //     (*it)->setDataRoot("RISCV_HEAP");
-          else{  
-            inst = FindDataSource(*it);
+          else{
+            std::unordered_set<AssemblyInstruction*> visited;
+            inst = FindDataSource(*it, visited);
             if(inst){
        
               (*it)->setDataRoot(inst->getDataRoot());
@@ -427,7 +429,10 @@ GlobalData* AssemblyCFG::ComputeGlobalAddr(AssemblyInstruction* inst){
 }
 
 
-AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
+AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst, std::unordered_set<AssemblyInstruction*> visited){
+
+  if(!inst || visited.count(inst)) return NULL;
+  visited.insert(inst);
 
   //cout << "DEBUG:: Entering FindDataSource()\n";
 
@@ -487,7 +492,7 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
 
   for(i = RS1; i<=RS3; i++){
     if(inst->HasLocalEdge(i)){
-      ret = FindDataSource(inst->getLocalEdge(i));
+      ret = FindDataSource(inst->getLocalEdge(i), visited);
       if(ret)
         return ret;
     }
@@ -499,7 +504,7 @@ AssemblyInstruction* AssemblyCFG::FindDataSource(AssemblyInstruction* inst){
         // skip the inst itself for loops to avoid infinite recursive calls
         if(inst == *it) 
           continue;   
-        ret = FindDataSource((*it));
+        ret = FindDataSource((*it), visited);
         if(ret)
           return ret;
       }

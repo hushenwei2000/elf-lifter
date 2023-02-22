@@ -12,6 +12,7 @@
 #include "AssemblyBasicBlock.h"
 #include <vector>
 #include <string>
+#include <unordered_set>
 #include "PHI.h"
 #include "AssemblyFunction.h"
 
@@ -70,7 +71,7 @@ public:
   int FindMatchedEpilogue(int reg, int &size); 
   int FindRet();
 
-  AssemblyInstruction*  FindDataSource(AssemblyInstruction* inst);
+  AssemblyInstruction*  FindDataSource(AssemblyInstruction* inst, std::unordered_set<AssemblyInstruction*> visited);
   void TraverseLoadStore();
 
 
