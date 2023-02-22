@@ -317,6 +317,7 @@ namespace MetaTrans{
 
         (*newPhi)
             .setInstType(InstType::PHI)
+            .setOriginInst("PHI")
             .setParent(curMetaBB)
             ;
 
