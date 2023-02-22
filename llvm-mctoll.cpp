@@ -2509,7 +2509,9 @@ static void DumpTIR() {
     str += func->toString() + ",";
   }
   str[str.length() - 1] = ']';
-  MetaTrans::MetaUtil::writeToFile(str, "/opt/BinaryTranslation/test/asm.json");
+  string name = getenv("HOME");
+  name += + "/asm.json";
+  MetaTrans::MetaUtil::writeToFile(str, name);
   std::cout << "\n//==-------------------- END DUMP TIR --------------------==//" << "\n\n";
 }
 
