@@ -183,13 +183,13 @@ namespace MetaTrans{
         MetaInst* u = instMap[asmInst->hashCode()];
         for (int i = 1; i < MAX_OPERAND; ++i) {
             // 这里仅处理local edge
-            if (!asmInst->HasLocalEdge(i)) { continue; }
-            AssemblyInstruction* source = asmInst->getLocalEdge(i);
-            assert(source);
-            printf("0x%08x --%d-->> 0x%08x\n", asmInst->getAddress(), i, source->getAddress());
-            MetaInst* v = instMap[source->hashCode()];
-            assert(v);
+            if (!asmInst->HasLocalEdge(i)) continue;
+            AssemblyInstruction* rs = asmInst->getLocalEdge(i);
+            MetaInst*            v  = instMap[rs->hashCode()];
+
             u->addOperand((MetaOperand*)v);
+
+            printf("%s --%d-->> %s\n", asmInst->getMnemonic().c_str(), i, rs->getMnemonic().c_str());
         }
     }
 
@@ -199,6 +199,8 @@ namespace MetaTrans{
             // 这里处理跨越边
             if (asmInst->HasLocalEdge(i) || asmInst->HasGlobalEdge(i) < 2) continue;
             assert(asmInst->HasGlobalEdge(i) >= 2);
+
+            printf("GLOBAL EDGE: find global edge for: %s", asmInst->getMnemonic().c_str(), i);
 
             // print some info
             std::cout << "### Algorithm start at: 0x" << asmInst->hashCode() << "\t###" << std::endl;
