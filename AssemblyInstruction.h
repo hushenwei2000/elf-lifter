@@ -216,6 +216,7 @@ public:
   std::vector<AssemblyInstruction*>& getDataSource();
   void setDataRoot(string source);
   std::string getDataRoot();
+  std::string getGlobalSymbolName();
 
   GlobalData getGlobalData();
   void setGlobalData(GlobalData ptr);

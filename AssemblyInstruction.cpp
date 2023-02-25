@@ -783,6 +783,10 @@ GlobalData AssemblyInstruction::getGlobalData(){
   return GlobalSymbol;
 }
 
+std::string AssemblyInstruction::getGlobalSymbolName(){
+  return GlobalSymbol.name;
+}
+
 void AssemblyInstruction::setGlobalData(GlobalData g){
    GlobalSymbol = g;
 }

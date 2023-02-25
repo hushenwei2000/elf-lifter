@@ -49,11 +49,16 @@ namespace MetaTrans {
                 MetaInst* metaInst = builder.instMap[(**inst_iter).hashCode()];
                 vector<InstType> opList = typeMap[mnemonic];
                 string _dataRoot = (*inst_iter)->getDataRoot();
+                string _globalSymbolName = "";
+                if(_dataRoot == "RISCV_GLOBAL") {
+                    _globalSymbolName = (*inst_iter)->getGlobalSymbolName();
+                }
                 (*metaInst)
                     .setOriginInst(mnemonic)
                     .setInstType(opList)
                     .setTypeSrc(*(builder.getTypeSrc(mnemonic)))
                     .setDataRoot(_dataRoot)
+                    .setGlobalSymbolName(_globalSymbolName)
                     ;
 
             }
