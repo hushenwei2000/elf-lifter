@@ -20,7 +20,7 @@
 #include "AssemblyBasicBlock.h"
 #include "AssemblyCFG.h"
 #include "AssemblyFunction.h"
-#include "MetaBuilder.h"
+
 #include "llvm/ADT/Optional.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringExtras.h"
@@ -95,7 +95,7 @@
 #include "macro.h"
 #include <sstream>
 #include <stdexcept>
-#include "MetaUtils.h"
+
 #include "ASMUtils.h"
 
 
@@ -170,8 +170,6 @@ std::string MatchPLTFunction(uint64_t addr){
     return "NULL";
 }
 
-
-static void DumpTIR();
 
 
 GlobalData* MatchGlobalData(uint64_t addr){
@@ -316,9 +314,6 @@ void RecordGlobalSection(string name,uint64_t addr, int size){
 
 bool RISCV_ISA = false;
 
-
-void static DumpIR2TIR(); 
-void static DumpASM2TIR();
 
 
 static cl::OptionCategory LLVMMCToLLCategory("llvm-mctoll options");
@@ -2321,7 +2316,6 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
       cout << msg << endl;
     }
 
-    DumpTIR();
 
     assInstrsOfFunction.clear();
 
@@ -2488,32 +2482,7 @@ static void DumpInput(StringRef file) {
     report_error(errorCodeToError(object_error::invalid_file_type), file);
 }
 
-static MetaTrans::MetaAsmBuilder builder;
 
-static void DumpTIR() {
-  std::cout << "\n//==-------------------- START DUMP TIR --------------------==//" << "\n";
-  std::vector<MetaTrans::MetaFunction*> funcs;
-
-  for (AssemblyCFG* cfg : cfgs) {
-    if (cfg->getName() == "_start") continue;
-    MetaTrans::MetaFunction* mF = builder
-                                    .setAsmCFG(cfg)
-                                    .setTypeMap(MetaTrans::YamlUtil::parseAsmMapConfig("/opt/BinaryTranslation/test/asm.yml"))
-                                    .build()
-                                    ;
-    funcs.push_back(mF);
-  }
-  std::cout << "\n//==---------- START DUMP FUNCS ----------==//" << "\n";
-  std::string str = "[";
-  for (auto func : funcs) {
-    str += func->toString() + ",";
-  }
-  str[str.length() - 1] = ']';
-  string name = getenv("HOME");
-  name += + "/asm.json";
-  MetaTrans::MetaUtil::writeToFile(str, name);
-  std::cout << "\n//==-------------------- END DUMP TIR --------------------==//" << "\n\n";
-}
 
 int main(int argc, char **argv) {
   // Print a stack trace if we signal out.

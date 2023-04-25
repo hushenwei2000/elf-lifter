@@ -70,11 +70,6 @@ add_llvm_tool(llvm-mctoll
   AssemblyBasicBlock.cpp
   AssemblyCFG.cpp
 	PHI.cpp
-  Filter.cpp
-  MetaAsmFilter.cpp
-  MetaBuilder.cpp
-  MetaTrans.cpp
-  MetaUtils.cpp
   AssemblyFunction.cpp
 )
 
